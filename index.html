@@ -1,1109 +1,1185 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Khảo sát: Sự hợp tác Con người – AI | RMIT University Vietnam</title>
-
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       HOW TO CONNECT THIS PAGE TO YOUR GOOGLE FORM
-       ────────────────────────────────────────────────────────────────────
-       1. Run create_google_form.gs in Google Apps Script
-       2. Copy the "Published URL" from the execution log
-       3. Replace the GOOGLE_FORM_URL value below with that URL
-       4. Visitors will be redirected to the real Google Form on submission
-       ═══════════════════════════════════════════════════════════════════════ -->
-
-  <style>
-    /* ── Reset & Variables ────────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --red:        #C8102E;
-      --red-dark:   #9E0C23;
-      --red-light:  #FFF0F2;
-      --dark:       #1C1C1C;
-      --gray:       #F4F4F4;
-      --border:     #DDDDDD;
-      --text:       #212121;
-      --muted:      #666666;
-      --white:      #FFFFFF;
-      --shadow-sm:  0 1px 4px rgba(0,0,0,0.08);
-      --shadow-md:  0 3px 12px rgba(0,0,0,0.12);
-      --radius:     6px;
-      --font:       'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: var(--font);
-      background: var(--gray);
-      color: var(--text);
-      line-height: 1.65;
-      font-size: 15px;
-    }
-
-    /* ── Banner ───────────────────────────────────────────────────────────── */
-    .banner-wrap {
-      position: relative;
-      width: 100%;
-      height: 260px;
-      overflow: hidden;
-    }
-
-    .banner-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center 40%;
-      display: block;
-    }
-
-    .banner-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        to bottom,
-        rgba(0,0,0,0.05) 0%,
-        rgba(28,28,28,0.78) 100%
-      );
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 28px 36px;
-      color: var(--white);
-    }
-
-    .banner-overlay h1 {
-      font-size: 1.35rem;
-      font-weight: 700;
-      line-height: 1.3;
-      text-shadow: 0 1px 6px rgba(0,0,0,0.6);
-      max-width: 680px;
-    }
-
-    .banner-overlay p {
-      font-size: 0.85rem;
-      margin-top: 6px;
-      opacity: 0.88;
-      letter-spacing: 0.3px;
-    }
-
-    .rmit-stripe { height: 5px; background: var(--red); }
-
-    /* ── Layout ───────────────────────────────────────────────────────────── */
-    .container {
-      max-width: 880px;
-      margin: 0 auto;
-      padding: 24px 18px 72px;
-    }
-
-    /* ── Progress bar ─────────────────────────────────────────────────────── */
-    .progress-wrap {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: var(--white);
-      border-bottom: 1px solid var(--border);
-      padding: 10px 18px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .progress-label {
-      font-size: 0.78rem;
-      color: var(--muted);
-      white-space: nowrap;
-      min-width: 70px;
-    }
-
-    .progress-bar-bg {
-      flex: 1;
-      height: 6px;
-      background: var(--border);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-
-    .progress-bar-fill {
-      height: 100%;
-      background: var(--red);
-      border-radius: 99px;
-      width: 0%;
-      transition: width 0.4s ease;
-    }
-
-    .progress-pct {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--red);
-      min-width: 36px;
-      text-align: right;
-    }
-
-    /* ── Card ─────────────────────────────────────────────────────────────── */
-    .card {
-      background: var(--white);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-
-    .card-header {
-      background: var(--red);
-      color: var(--white);
-      padding: 14px 22px;
-    }
-
-    .card-header.dark { background: var(--dark); }
-
-    .card-header h2 {
-      font-size: 0.95rem;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-    }
-
-    .card-header .subtitle {
-      font-size: 0.80rem;
-      margin-top: 3px;
-      opacity: 0.88;
-    }
-
-    .card-body { padding: 20px 22px; }
-
-    /* ── Intro card ───────────────────────────────────────────────────────── */
-    .intro-body p {
-      font-size: 0.88rem;
-      color: #333;
-      margin-bottom: 10px;
-    }
-
-    .intro-body h3 {
-      font-size: 0.90rem;
-      font-weight: 700;
-      color: var(--red);
-      margin: 18px 0 6px;
-    }
-
-    .intro-body ul {
-      padding-left: 20px;
-      font-size: 0.86rem;
-      color: #444;
-    }
-
-    .intro-body ul li { margin-bottom: 4px; }
-
-    /* ── Section label ────────────────────────────────────────────────────── */
-    .section-tag {
-      display: inline-block;
-      background: var(--red-light);
-      color: var(--red);
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 99px;
-      letter-spacing: 0.4px;
-      margin-bottom: 16px;
-      text-transform: uppercase;
-    }
-
-    /* ── Question ─────────────────────────────────────────────────────────── */
-    .question { margin-bottom: 22px; }
-
-    .question:last-child { margin-bottom: 0; }
-
-    .q-label {
-      display: block;
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 10px;
-    }
-
-    .q-label .req { color: var(--red); margin-left: 2px; }
-
-    .q-hint {
-      display: block;
-      font-size: 0.78rem;
-      font-weight: 400;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    hr.q-divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 18px 0;
-    }
-
-    /* ── Radio / Checkbox options ─────────────────────────────────────────── */
-    .opt-list { list-style: none; }
-
-    .opt-list li { margin-bottom: 6px; }
-
-    .opt-list label {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.86rem;
-      cursor: pointer;
-      padding: 7px 10px;
-      border-radius: 4px;
-      transition: background 0.15s;
-      border: 1px solid transparent;
-    }
-
-    .opt-list label:hover { background: var(--red-light); }
-
-    .opt-list input[type="radio"],
-    .opt-list input[type="checkbox"] {
-      accent-color: var(--red);
-      width: 16px;
-      height: 16px;
-      flex-shrink: 0;
-      cursor: pointer;
-    }
-
-    .other-text {
-      margin: 4px 0 0 26px;
-      padding: 6px 10px;
-      width: calc(100% - 30px);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      font-size: 0.84rem;
-      font-family: var(--font);
-      display: none;
-    }
-
-    .other-text.visible { display: block; }
-
-    /* ── Consent box ──────────────────────────────────────────────────────── */
-    .consent-box {
-      border: 2px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px 18px;
-      margin-top: 16px;
-      background: #FAFAFA;
-    }
-
-    /* ── Likert table ─────────────────────────────────────────────────────── */
-    .likert-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-
-    .likert-tbl {
-      width: 100%;
-      min-width: 560px;
-      border-collapse: collapse;
-      font-size: 0.82rem;
-    }
-
-    .likert-tbl thead th {
-      background: var(--red-light);
-      color: var(--red);
-      font-weight: 600;
-      padding: 9px 6px;
-      border: 1px solid var(--border);
-      text-align: center;
-      font-size: 0.76rem;
-    }
-
-    .likert-tbl thead th.stmt-h {
-      text-align: left;
-      width: 42%;
-      color: var(--dark);
-      padding-left: 12px;
-    }
-
-    .likert-tbl tbody tr:nth-child(even) { background: #FAFAFA; }
-    .likert-tbl tbody tr:hover { background: #FFF5F6; }
-
-    .likert-tbl tbody td {
-      padding: 9px 6px;
-      border: 1px solid var(--border);
-      vertical-align: middle;
-    }
-
-    .likert-tbl tbody td.stmt {
-      font-size: 0.84rem;
-      color: var(--text);
-      padding-left: 12px;
-      line-height: 1.4;
-    }
-
-    .likert-tbl tbody td.rc { text-align: center; }
-
-    .likert-tbl input[type="radio"] {
-      accent-color: var(--red);
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-    }
-
-    /* ── Submit ───────────────────────────────────────────────────────────── */
-    .submit-wrap {
-      text-align: center;
-      padding: 36px 0 24px;
-    }
-
-    .btn-submit {
-      background: var(--red);
-      color: var(--white);
-      border: none;
-      padding: 14px 56px;
-      font-size: 1rem;
-      font-weight: 700;
-      border-radius: 4px;
-      cursor: pointer;
-      letter-spacing: 0.4px;
-      box-shadow: 0 3px 10px rgba(200,16,46,0.35);
-      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-    }
-
-    .btn-submit:hover {
-      background: var(--red-dark);
-      box-shadow: 0 4px 14px rgba(200,16,46,0.45);
-      transform: translateY(-1px);
-    }
-
-    .btn-submit:active { transform: translateY(0); }
-
-    .submit-note {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 12px;
-    }
-
-    /* ── Thank-you screen ─────────────────────────────────────────────────── */
-    #thank-you {
-      display: none;
-      text-align: center;
-      padding: 70px 20px 50px;
-    }
-
-    #thank-you .ty-icon {
-      font-size: 3rem;
-      margin-bottom: 16px;
-    }
-
-    #thank-you h2 {
-      font-size: 1.4rem;
-      color: var(--red);
-      margin-bottom: 10px;
-    }
-
-    #thank-you p { color: var(--muted); font-size: 0.92rem; }
-
-    /* ── Footer ───────────────────────────────────────────────────────────── */
-    footer {
-      text-align: center;
-      padding: 22px 18px;
-      font-size: 0.76rem;
-      color: #AAAAAA;
-      border-top: 1px solid var(--border);
-      background: var(--white);
-    }
-
-    /* ── Validation ───────────────────────────────────────────────────────── */
-    .field-err .opt-list { outline: 2px solid var(--red); border-radius: 4px; }
-    .field-err .likert-tbl { outline: 2px solid var(--red); border-radius: 4px; }
-
-    .err-msg {
-      display: none;
-      color: var(--red);
-      font-size: 0.76rem;
-      margin-top: 4px;
-    }
-
-    .err-msg.show { display: block; }
-
-    /* ── Responsive ───────────────────────────────────────────────────────── */
-    @media (max-width: 600px) {
-      .banner-wrap { height: 200px; }
-      .banner-overlay { padding: 18px 18px; }
-      .banner-overlay h1 { font-size: 1.05rem; }
-      .container { padding: 14px 12px 54px; }
-      .card-body { padding: 16px 14px; }
-      .btn-submit { padding: 12px 36px; font-size: 0.95rem; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- GOOGLE SHEETS: Paste your Apps Script Web App URL below (or set via Admin Panel) -->
+    <meta name="google-script-url" content="">
+    <!-- ADMIN PASSWORD HASH (SHA-256). Default password: admin2026 -->
+    <!-- To change: open browser console, run:
+         crypto.subtle.digest('SHA-256',new TextEncoder().encode('YOUR_PASSWORD'))
+           .then(b=>console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''))) -->
+    <meta name="admin-password-hash" content="6051fc84a7a0d74c225fb18a496b09952da5642e60723ecae543298edd7d82d6">
+    <title>Khảo sát – Sự hợp tác giữa Con người và AI trong Doanh nghiệp</title>
+    <style>
+        :root {
+            --primary: #000054;
+            --primary-light: #1a1a7e;
+            --accent: #e4002b;
+            --bg: #f5f6fa;
+            --card: #ffffff;
+            --text: #2c3e50;
+            --text-light: #6c7a89;
+            --border: #dce1e8;
+            --success: #27ae60;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .survey-container { max-width: 860px; margin: 0 auto; padding: 20px; }
+
+        /* Header */
+        .survey-header { background: var(--primary); color: #fff; border-radius: 12px; margin-bottom: 24px; text-align: center; overflow: hidden; }
+        .survey-banner { width: 100%; height: clamp(140px, 28vw, 240px); object-fit: cover; object-position: center 40%; display: block; }
+        .survey-header-content {
+            background: linear-gradient(180deg, rgba(0,0,84,0.72) 0%, rgba(0,0,84,0.96) 40%, var(--primary) 100%);
+            padding: clamp(20px, 4vw, 36px) clamp(16px, 4vw, 36px) clamp(24px, 4vw, 40px);
+            margin-top: -4px;
+        }
+        .survey-header h1 { font-size: clamp(15px, 2.5vw, 20px); font-weight: 700; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .survey-header .subtitle { font-size: clamp(12px, 1.6vw, 14px); opacity: 0.88; max-width: 700px; margin: 12px auto 0; line-height: 1.7; }
+        .survey-header .org { display: inline-block; background: var(--accent); color: #fff; padding: 4px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 16px; }
+
+        /* Intro box */
+        .intro-box { background: var(--card); border-radius: 12px; padding: 24px 28px; margin-bottom: 20px; border: 1px solid var(--border); }
+        .intro-box h3 { color: var(--primary); font-size: 15px; margin-bottom: 10px; }
+        .intro-box p, .intro-box li { font-size: 13.5px; color: var(--text); line-height: 1.75; }
+        .intro-box ul { padding-left: 18px; margin-top: 8px; }
+
+        /* Scale legend */
+        .scale-legend { display: flex; gap: 0; margin: 12px 0 0; flex-wrap: wrap; }
+        .scale-item { flex: 1; min-width: 60px; text-align: center; background: #f0f2f8; border: 1px solid var(--border); padding: 8px 4px; }
+        .scale-item:first-child { border-radius: 6px 0 0 6px; }
+        .scale-item:last-child { border-radius: 0 6px 6px 0; }
+        .scale-item .num { font-size: 15px; font-weight: 700; color: var(--primary); display: block; }
+        .scale-item .lbl { font-size: 10px; color: var(--text-light); line-height: 1.3; display: block; }
+
+        /* Progress */
+        .progress-wrap { background: var(--card); border-radius: 10px; padding: 14px 24px; margin-bottom: 20px; border: 1px solid var(--border); display: flex; align-items: center; gap: 14px; }
+        .progress-wrap span { font-size: 13px; font-weight: 600; white-space: nowrap; }
+        .progress-bar { flex: 1; height: 8px; background: #e8eaef; border-radius: 4px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 4px; transition: width 0.4s ease; width: 0%; }
+
+        /* Date / email field */
+        .date-field { background: var(--card); padding: 16px 24px; border-radius: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border); flex-wrap: wrap; }
+        .date-field label { font-weight: 600; font-size: 14px; white-space: nowrap; }
+        .date-field input { border: 1px solid var(--border); padding: 8px 14px; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.2s; }
+        .date-field input:focus { border-color: var(--primary); }
+
+        /* Section */
+        .section { background: var(--card); border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+        .section-header { background: var(--primary); color: #fff; padding: 16px 24px; font-size: 15px; font-weight: 700; }
+        .section-header small { display: block; font-weight: 400; font-size: 12px; opacity: 0.8; margin-top: 4px; }
+        .section-body { padding: 24px; }
+        .section-instruction { font-size: 13px; color: var(--text-light); margin-bottom: 20px; padding: 10px 14px; background: #f0f2f8; border-radius: 8px; border-left: 3px solid var(--primary); }
+
+        /* Question */
+        .question-block { margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #f0f2f5; }
+        .question-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .question-label { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; gap: 8px; }
+        .question-label .q-num { background: var(--primary); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+
+        /* Radio / Checkbox options (demographics) */
+        .options-list { display: flex; flex-wrap: wrap; gap: 8px 16px; padding-left: 32px; }
+        .options-list.col { flex-direction: column; gap: 6px; }
+        .options-list label { display: flex; align-items: center; gap: 6px; font-size: 13.5px; cursor: pointer; padding: 6px 12px; border-radius: 6px; border: 1px solid transparent; transition: all 0.15s; }
+        .options-list label:hover { background: #f0f2f8; border-color: var(--border); }
+        .options-list input[type="radio"],
+        .options-list input[type="checkbox"] { accent-color: var(--primary); width: 16px; height: 16px; }
+        .other-input { margin-top: 6px; padding-left: 32px; display: none; }
+        .other-input input[type="text"] { border: 1px solid var(--border); padding: 7px 12px; border-radius: 6px; font-size: 13px; width: 100%; max-width: 380px; outline: none; transition: border 0.2s; }
+        .other-input input[type="text"]:focus { border-color: var(--primary); }
+        .checkbox-note { font-size: 12px; color: var(--text-light); padding-left: 32px; margin-top: 4px; font-style: italic; }
+
+        /* Likert 5-point */
+        .likert-wrap { padding-left: 32px; margin-top: 6px; }
+        .likert-row { display: flex; align-items: center; gap: 0; }
+        .lk-end { font-size: 11px; color: var(--text-light); min-width: 90px; line-height: 1.3; }
+        .lk-end.left { text-align: right; padding-right: 10px; }
+        .lk-end.right { text-align: left; padding-left: 10px; }
+        .likert-options { display: flex; gap: 0; }
+        .likert-options label { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 8px 14px; border-radius: 6px; transition: background 0.15s; }
+        .likert-options label:hover { background: #f0f2f8; }
+        .likert-options label span { font-size: 12px; font-weight: 700; color: var(--text-light); }
+        .likert-options input[type="radio"] { accent-color: var(--primary); width: 18px; height: 18px; }
+
+        /* Submit */
+        .submit-area { text-align: center; padding: 30px 0; }
+        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 12px 28px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-light); transform: translateY(-1px); }
+        .btn-accent { background: var(--accent); color: #fff; }
+        .btn-accent:hover { opacity: 0.9; }
+        .btn-sm { padding: 8px 16px; font-size: 13px; }
+        .submit-area .btn { min-width: 220px; padding: 14px 36px; font-size: 16px; }
+        .btn[disabled] { opacity: .6; cursor: not-allowed; }
+
+        /* Consent gate */
+        .consent-gate { background: #fff8e1; border: 1px solid #ffe082; border-radius: 10px; padding: 20px 24px; margin-bottom: 20px; display: none; text-align: center; }
+        .consent-gate p { color: #795548; font-size: 14px; }
+
+        /* Admin panel */
+        .admin-toggle { position: fixed; bottom: 24px; right: 24px; z-index: 1000; }
+        .admin-panel { display: none; position: fixed; top: 0; right: 0; width: 420px; height: 100vh; background: var(--card); box-shadow: -4px 0 20px rgba(0,0,0,0.12); z-index: 999; overflow-y: auto; padding: 28px; }
+        .admin-panel.active { display: block; }
+        .admin-panel h3 { font-size: 18px; margin-bottom: 20px; color: var(--primary); }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+        .form-group input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; outline: none; }
+        .admin-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 998; }
+        .admin-overlay.active { display: block; }
+        .config-box { background: #f8f9fc; border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 16px; }
+        .config-box h5 { font-size: 13px; margin-bottom: 8px; color: var(--primary); }
+        .config-box input { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 5px; font-size: 12px; font-family: monospace; }
+        .config-box .hint { font-size: 11px; color: var(--text-light); margin-top: 6px; line-height: 1.5; }
+        .status-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 12px; border-radius: 12px; font-weight: 600; }
+        .status-badge.online { background: #e8f8ef; color: #27ae60; }
+        .status-badge.offline { background: #fde8ec; color: #e74c3c; }
+        .status-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; border-radius: 50%; }
+
+        /* Toast */
+        .toast { position: fixed; top: 24px; right: 24px; background: var(--success); color: #fff; padding: 14px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 2000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 340px; }
+        .toast.show { display: block; animation: slideIn 0.3s ease; }
+        .toast.error { background: #e74c3c; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Spinner */
+        .spinner { display: inline-block; width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Thank you */
+        .thank-you { display: none; text-align: center; padding: 60px 30px; background: var(--card); border-radius: 12px; border: 1px solid var(--border); }
+        .thank-you h2 { color: var(--primary); margin-bottom: 12px; font-size: 22px; }
+        .thank-you p { color: var(--text-light); font-size: 15px; }
+
+        /* Required error highlight */
+        .req-error .question-label { color: var(--accent); }
+        .req-error .likert-wrap, .req-error .options-list { outline: 2px dashed var(--accent); border-radius: 6px; padding: 6px; }
+
+        @media (max-width: 640px) {
+            .survey-container { padding: 12px; }
+            .survey-banner { height: clamp(100px, 40vw, 160px); }
+            .survey-header h1 { font-size: 15px; }
+            .section-body { padding: 16px; }
+            .likert-row { flex-wrap: wrap; }
+            .lk-end { min-width: auto; width: 100%; text-align: left; padding: 0 0 4px; }
+            .likert-options label { padding: 8px 8px; }
+            .options-list { padding-left: 0; }
+            .other-input { padding-left: 0; }
+            .checkbox-note { padding-left: 0; }
+            .admin-panel { width: 100%; }
+            .scale-legend { gap: 2px; }
+            .scale-item .lbl { font-size: 9px; }
+        }
+    </style>
 </head>
-
 <body>
+<div class="survey-container">
 
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!--  BANNER                                                                 -->
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<div class="banner-wrap">
-  <img src="rmit-banner.jpg" alt="RMIT University Vietnam campus" />
-  <div class="banner-overlay">
-    <h1>KHẢO SÁT: SỰ HỢP TÁC GIỮA CON NGƯỜI VÀ TRÍ TUỆ NHÂN TẠO TRONG DOANH NGHIỆP</h1>
-    <p>RMIT University Vietnam &nbsp;|&nbsp; Nghiên cứu học thuật &nbsp;|&nbsp; Human – AI Collaboration</p>
-  </div>
+    <!-- ========== HEADER ========== -->
+    <div class="survey-header">
+        <img src="rmit-banner.jpg" alt="RMIT Vietnam Campus" class="survey-banner" onerror="this.style.display='none'">
+        <div class="survey-header-content">
+            <div class="org">NGHIÊN CỨU HỌC THUẬT · RMIT VIETNAM</div>
+            <h1>PHIẾU KHẢO SÁT</h1>
+            <h1 style="font-size:clamp(13px,2vw,17px);font-weight:400;margin-top:6px;">
+                Sự Hợp Tác Giữa Con Người và Trí Tuệ Nhân Tạo trong Doanh Nghiệp<br>
+                <span style="opacity:0.8;font-size:clamp(11px,1.5vw,13px);">Human–AI Collaboration in Enterprise</span>
+            </h1>
+            <p class="subtitle">
+                Chúng tôi đang thực hiện nghiên cứu về cách nhân viên và tổ chức ứng dụng AI trong công việc hằng ngày, 
+                mức độ tin tưởng, phối hợp và ra quyết định cùng AI. Thời gian thực hiện khoảng 10–15 phút.
+            </p>
+        </div>
+    </div>
+
+    <!-- ========== INTRO BOX ========== -->
+    <div class="intro-box">
+        <h3>📋 Giới thiệu nghiên cứu</h3>
+        <p>Nghiên cứu tập trung tìm hiểu cách nhân viên tương tác, phối hợp và ra quyết định cùng với AI trong bối cảnh 
+        công nghệ số phát triển mạnh mẽ. Đặc biệt, nghiên cứu quan tâm đến việc sử dụng các công cụ AI tạo sinh (Generative AI),
+        nội dung do AI tạo ra, và các yếu tố ảnh hưởng đến khả năng đánh giá, xác minh và sử dụng thông tin trong môi trường làm việc.</p>
+        <ul>
+            <li>Khảo sát hoàn toàn phục vụ <strong>mục đích nghiên cứu học thuật</strong>.</li>
+            <li>Không có câu trả lời đúng hoặc sai — xin trả lời dựa trên <strong>trải nghiệm thực tế</strong>.</li>
+            <li>Mọi thông tin thu thập sẽ được <strong>bảo mật</strong> và chỉ sử dụng cho mục đích nghiên cứu.</li>
+        </ul>
+        <p style="margin-top:12px;"><strong>Thang đo Likert 5 điểm dùng cho Phần II:</strong></p>
+        <div class="scale-legend">
+            <div class="scale-item"><span class="num">1</span><span class="lbl">Rất không đồng ý</span></div>
+            <div class="scale-item"><span class="num">2</span><span class="lbl">Không đồng ý</span></div>
+            <div class="scale-item"><span class="num">3</span><span class="lbl">Bình thường</span></div>
+            <div class="scale-item"><span class="num">4</span><span class="lbl">Đồng ý</span></div>
+            <div class="scale-item"><span class="num">5</span><span class="lbl">Rất đồng ý</span></div>
+        </div>
+    </div>
+
+    <!-- ========== PROGRESS ========== -->
+    <div class="progress-wrap" id="progressWrap">
+        <span>Tiến độ:</span>
+        <div class="progress-bar"><div class="progress-bar-fill" id="progress-fill"></div></div>
+        <span id="progress-text">0%</span>
+    </div>
+
+    <!-- ========== CONSENT GATE (shown if user declines) ========== -->
+    <div class="consent-gate" id="consentGate">
+        <p>⚠ Cảm ơn Anh/Chị đã xem qua khảo sát. Vì Anh/Chị không đồng ý tham gia, biểu mẫu sẽ không được gửi đi.
+        Nếu muốn tham gia, vui lòng chọn lại <strong>"Có"</strong> ở câu đầu tiên.</p>
+    </div>
+
+    <!-- ========== SURVEY FORM ========== -->
+    <form id="surveyForm" novalidate>
+
+        <!-- CONSENT -->
+        <div class="section">
+            <div class="section-header">
+                PHẦN MỞ ĐẦU — ĐỒNG Ý THAM GIA
+                <small>Consent to Participate</small>
+            </div>
+            <div class="section-body">
+                <div class="question-block" id="block_consent">
+                    <div class="question-label">
+                        <span class="q-num">✓</span>
+                        <span>Tôi đã hiểu mục đích của khảo sát này và <strong>đồng ý tham gia</strong> khảo sát:</span>
+                    </div>
+                    <div class="options-list">
+                        <label><input type="radio" name="consent" value="Có" required id="consent_yes"> Có</label>
+                        <label><input type="radio" name="consent" value="Không" id="consent_no"> Không</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== SECTION I: THÔNG TIN CƠ BẢN ========== -->
+        <div class="section">
+            <div class="section-header">
+                PHẦN I — THÔNG TIN CƠ BẢN
+                <small>Basic Information</small>
+            </div>
+            <div class="section-body">
+                <div class="section-instruction">Vui lòng cung cấp một số thông tin cơ bản về Anh/Chị và doanh nghiệp. Mọi thông tin chỉ dùng cho mục đích thống kê.</div>
+
+                <!-- Q1: Giới tính -->
+                <div class="question-block" id="block_q_info_1">
+                    <div class="question-label">
+                        <span class="q-num">1</span>
+                        <span>Giới tính</span>
+                    </div>
+                    <div class="options-list">
+                        <label><input type="radio" name="q_info_1" value="Nam" required> Nam</label>
+                        <label><input type="radio" name="q_info_1" value="Nữ"> Nữ</label>
+                        <label><input type="radio" name="q_info_1" value="Khác"> Khác</label>
+                    </div>
+                </div>
+
+                <!-- Q2: Độ tuổi -->
+                <div class="question-block" id="block_q_info_2">
+                    <div class="question-label">
+                        <span class="q-num">2</span>
+                        <span>Độ tuổi</span>
+                    </div>
+                    <div class="options-list">
+                        <label><input type="radio" name="q_info_2" value="18–24" required> 18 – 24</label>
+                        <label><input type="radio" name="q_info_2" value="25–34"> 25 – 34</label>
+                        <label><input type="radio" name="q_info_2" value="35–45"> 35 – 45</label>
+                        <label><input type="radio" name="q_info_2" value=">45"> &gt; 45</label>
+                    </div>
+                </div>
+
+                <!-- Q3: Chức vụ -->
+                <div class="question-block" id="block_q_info_3">
+                    <div class="question-label">
+                        <span class="q-num">3</span>
+                        <span>Chức vụ hiện tại của Anh/Chị trong tổ chức là gì?</span>
+                    </div>
+                    <div class="options-list col">
+                        <label><input type="radio" name="q_info_3" value="Giám đốc điều hành (CEO)" required> Giám đốc điều hành (CEO)</label>
+                        <label><input type="radio" name="q_info_3" value="Giám đốc tài chính (CFO)"> Giám đốc tài chính (CFO)</label>
+                        <label><input type="radio" name="q_info_3" value="Giám đốc công nghệ (CTO)"> Giám đốc công nghệ (CTO)</label>
+                        <label><input type="radio" name="q_info_3" value="Giám đốc marketing (CMO)"> Giám đốc marketing (CMO)</label>
+                        <label><input type="radio" name="q_info_3" value="Giám đốc nhân sự (CHRO)"> Giám đốc nhân sự (CHRO)</label>
+                        <label><input type="radio" name="q_info_3" value="Giám đốc thông tin (CIO)"> Giám đốc thông tin (CIO)</label>
+                        <label><input type="radio" name="q_info_3" value="Trưởng phòng/quản lý"> Trưởng phòng / Quản lý</label>
+                        <label><input type="radio" name="q_info_3" value="Nhân viên"> Nhân viên</label>
+                        <label><input type="radio" name="q_info_3" value="Khác" id="q3_other_radio"> Khác (vui lòng ghi ra)</label>
+                    </div>
+                    <div class="other-input" id="q3_other_wrap">
+                        <input type="text" name="q_info_3_other" id="q_info_3_other" placeholder="Nhập chức vụ của bạn...">
+                    </div>
+                </div>
+
+                <!-- Q4: Lĩnh vực -->
+                <div class="question-block" id="block_q_info_4">
+                    <div class="question-label">
+                        <span class="q-num">4</span>
+                        <span>Lĩnh vực hoạt động chính của doanh nghiệp/tổ chức nơi Anh/Chị đang làm việc là gì?</span>
+                    </div>
+                    <div class="options-list col">
+                        <label><input type="radio" name="q_info_4" value="Hậu cần / Quản trị chuỗi cung ứng" required> Hậu cần / Quản trị chuỗi cung ứng</label>
+                        <label><input type="radio" name="q_info_4" value="Sản xuất và Công nghiệp"> Sản xuất và Công nghiệp</label>
+                        <label><input type="radio" name="q_info_4" value="Công nghệ thông tin và Viễn thông"> Công nghệ thông tin và Viễn thông</label>
+                        <label><input type="radio" name="q_info_4" value="Bán lẻ và Hàng tiêu dùng"> Bán lẻ và Hàng tiêu dùng</label>
+                        <label><input type="radio" name="q_info_4" value="Tài chính và Ngân hàng"> Tài chính và Ngân hàng</label>
+                        <label><input type="radio" name="q_info_4" value="Giáo dục"> Giáo dục</label>
+                        <label><input type="radio" name="q_info_4" value="Chăm sóc sức khỏe và Dược phẩm"> Chăm sóc sức khỏe và Dược phẩm</label>
+                        <label><input type="radio" name="q_info_4" value="Xây dựng / Công trình"> Xây dựng / Công trình</label>
+                        <label><input type="radio" name="q_info_4" value="Khác" id="q4_other_radio"> Khác (vui lòng ghi ra)</label>
+                    </div>
+                    <div class="other-input" id="q4_other_wrap">
+                        <input type="text" name="q_info_4_other" id="q_info_4_other" placeholder="Nhập lĩnh vực của doanh nghiệp...">
+                    </div>
+                </div>
+
+                <!-- Q5: Quy mô nhân sự -->
+                <div class="question-block" id="block_q_info_5">
+                    <div class="question-label">
+                        <span class="q-num">5</span>
+                        <span>Doanh nghiệp của Anh/Chị có khoảng bao nhiêu nhân sự?</span>
+                    </div>
+                    <div class="options-list col">
+                        <label><input type="radio" name="q_info_5" value="1–49 nhân sự" required> 1 – 49 nhân sự</label>
+                        <label><input type="radio" name="q_info_5" value="50–249 nhân sự"> 50 – 249 nhân sự</label>
+                        <label><input type="radio" name="q_info_5" value="250–999 nhân sự"> 250 – 999 nhân sự</label>
+                        <label><input type="radio" name="q_info_5" value="1000+ nhân sự"> 1000+ nhân sự</label>
+                    </div>
+                </div>
+
+                <!-- Q6: Doanh thu -->
+                <div class="question-block" id="block_q_info_6">
+                    <div class="question-label">
+                        <span class="q-num">6</span>
+                        <span>Doanh nghiệp Anh/Chị có doanh thu hàng năm khoảng bao nhiêu?</span>
+                    </div>
+                    <div class="options-list col">
+                        <label><input type="radio" name="q_info_6" value="Dưới 3 tỷ VND" required> Dưới 3 tỷ VND</label>
+                        <label><input type="radio" name="q_info_6" value="Từ 3 tỷ đến 50 tỷ VND"> Từ 3 tỷ đến 50 tỷ VND</label>
+                        <label><input type="radio" name="q_info_6" value="Từ 50 tỷ đến 300 tỷ VND"> Từ 50 tỷ đến 300 tỷ VND</label>
+                        <label><input type="radio" name="q_info_6" value="Trên 300 tỷ VND"> Trên 300 tỷ VND</label>
+                        <label><input type="radio" name="q_info_6" value="Khác" id="q6_other_radio"> Khác (vui lòng ghi ra)</label>
+                    </div>
+                    <div class="other-input" id="q6_other_wrap">
+                        <input type="text" name="q_info_6_other" id="q_info_6_other" placeholder="Nhập doanh thu hàng năm...">
+                    </div>
+                </div>
+
+                <!-- Q7: Số năm hoạt động -->
+                <div class="question-block" id="block_q_info_7">
+                    <div class="question-label">
+                        <span class="q-num">7</span>
+                        <span>Doanh nghiệp của Anh/Chị đã hoạt động được khoảng bao nhiêu năm?</span>
+                    </div>
+                    <div class="options-list">
+                        <label><input type="radio" name="q_info_7" value="Dưới 5 năm" required> Dưới 5 năm</label>
+                        <label><input type="radio" name="q_info_7" value="Từ 5 đến 10 năm"> Từ 5 đến 10 năm</label>
+                        <label><input type="radio" name="q_info_7" value="Từ 11 đến 20 năm"> Từ 11 đến 20 năm</label>
+                        <label><input type="radio" name="q_info_7" value="Trên 20 năm"> Trên 20 năm</label>
+                    </div>
+                </div>
+
+                <!-- Q8: Thâm niên làm việc -->
+                <div class="question-block" id="block_q_info_8">
+                    <div class="question-label">
+                        <span class="q-num">8</span>
+                        <span>Anh/Chị đã làm việc trong tổ chức hiện tại được bao lâu?</span>
+                    </div>
+                    <div class="options-list">
+                        <label><input type="radio" name="q_info_8" value="Dưới 1 năm" required> Dưới 1 năm</label>
+                        <label><input type="radio" name="q_info_8" value="Từ 1 đến 5 năm"> Từ 1 đến 5 năm</label>
+                        <label><input type="radio" name="q_info_8" value="Từ 6 đến 10 năm"> Từ 6 đến 10 năm</label>
+                        <label><input type="radio" name="q_info_8" value="Trên 10 năm"> Trên 10 năm</label>
+                    </div>
+                </div>
+
+                <!-- Q9: Mức độ ứng dụng AI -->
+                <div class="question-block" id="block_q_info_9">
+                    <div class="question-label">
+                        <span class="q-num">9</span>
+                        <span>Doanh nghiệp/tổ chức của Anh/Chị hiện đang ứng dụng AI ở mức độ nào?</span>
+                    </div>
+                    <div class="options-list col">
+                        <label><input type="radio" name="q_info_9" value="Chưa sử dụng AI" required> Chưa sử dụng AI</label>
+                        <label><input type="radio" name="q_info_9" value="Đang thử nghiệm AI ở quy mô nhỏ"> Đang thử nghiệm AI ở quy mô nhỏ</label>
+                        <label><input type="radio" name="q_info_9" value="Sử dụng AI trong một số phòng ban/chức năng"> Sử dụng AI trong một số phòng ban / chức năng</label>
+                        <label><input type="radio" name="q_info_9" value="Sử dụng AI rộng rãi trong toàn doanh nghiệp"> Sử dụng AI rộng rãi trong toàn doanh nghiệp</label>
+                        <label><input type="radio" name="q_info_9" value="AI đã được tích hợp sâu vào quy trình vận hành và ra quyết định"> AI đã được tích hợp sâu vào quy trình vận hành và ra quyết định</label>
+                    </div>
+                </div>
+
+                <!-- Q10: Lĩnh vực AI (Checkbox) -->
+                <div class="question-block" id="block_q_info_10">
+                    <div class="question-label">
+                        <span class="q-num">10</span>
+                        <span>Doanh nghiệp/tổ chức của Anh/Chị chủ yếu ứng dụng AI trong lĩnh vực hoặc hoạt động nào?</span>
+                    </div>
+                    <p class="checkbox-note">Có thể chọn nhiều đáp án</p>
+                    <div class="options-list col" id="q10_checkboxes">
+                        <label><input type="checkbox" name="q_info_10_items" value="Phân tích dữ liệu và báo cáo"> Phân tích dữ liệu và báo cáo</label>
+                        <label><input type="checkbox" name="q_info_10_items" value="Tự động hóa quy trình làm việc"> Tự động hóa quy trình làm việc</label>
+                        <label><input type="checkbox" name="q_info_10_items" value="Chăm sóc khách hàng"> Chăm sóc khách hàng</label>
+                        <label><input type="checkbox" name="q_info_10_items" value="Marketing và sáng tạo nội dung"> Marketing và sáng tạo nội dung</label>
+                        <label><input type="checkbox" name="q_info_10_items" value="Logistics và chuỗi cung ứng"> Logistics và chuỗi cung ứng</label>
+                        <label><input type="checkbox" name="q_info_10_items" value="Quản trị nhân sự"> Quản trị nhân sự</label>
+                        <label><input type="checkbox" name="q_info_10_items" value="Hỗ trợ ra quyết định quản lý"> Hỗ trợ ra quyết định quản lý</label>
+                        <label><input type="checkbox" name="q_info_10_items" value="Nghiên cứu và phát triển (R&D)"> Nghiên cứu và phát triển (R&amp;D)</label>
+                        <label><input type="checkbox" name="q_info_10_items" value="Kiểm soát chất lượng/vận hành"> Kiểm soát chất lượng / vận hành</label>
+                        <label><input type="checkbox" name="q_info_10_items" value="Khác" id="q10_other_cb"> Khác (vui lòng ghi ra)</label>
+                    </div>
+                    <div class="other-input" id="q10_other_wrap">
+                        <input type="text" name="q_info_10_other" id="q_info_10_other" placeholder="Nhập lĩnh vực khác...">
+                    </div>
+                </div>
+
+                <!-- Q11: Thời gian sử dụng AI -->
+                <div class="question-block" id="block_q_info_11">
+                    <div class="question-label">
+                        <span class="q-num">11</span>
+                        <span>Anh/Chị đã sử dụng các công cụ AI trong bao lâu?</span>
+                    </div>
+                    <div class="options-list col">
+                        <label><input type="radio" name="q_info_11" value="Dưới 6 tháng" required> Dưới 6 tháng</label>
+                        <label><input type="radio" name="q_info_11" value="Từ 6 tháng đến dưới 1 năm"> Từ 6 tháng đến dưới 1 năm</label>
+                        <label><input type="radio" name="q_info_11" value="Từ 1 đến dưới 3 năm"> Từ 1 đến dưới 3 năm</label>
+                        <label><input type="radio" name="q_info_11" value="Từ 3 đến dưới 5 năm"> Từ 3 đến dưới 5 năm</label>
+                        <label><input type="radio" name="q_info_11" value="Trên 5 năm"> Trên 5 năm</label>
+                    </div>
+                </div>
+
+                <!-- Q12: Công cụ AI (Checkbox) -->
+                <div class="question-block" id="block_q_info_12">
+                    <div class="question-label">
+                        <span class="q-num">12</span>
+                        <span>Anh/Chị thường sử dụng những công cụ AI nào trong công việc?</span>
+                    </div>
+                    <p class="checkbox-note">Có thể chọn nhiều đáp án</p>
+                    <div class="options-list" id="q12_checkboxes">
+                        <label><input type="checkbox" name="q_info_12_items" value="ChatGPT"> ChatGPT</label>
+                        <label><input type="checkbox" name="q_info_12_items" value="Gemini"> Gemini</label>
+                        <label><input type="checkbox" name="q_info_12_items" value="Claude"> Claude</label>
+                        <label><input type="checkbox" name="q_info_12_items" value="Microsoft Copilot"> Microsoft Copilot</label>
+                        <label><input type="checkbox" name="q_info_12_items" value="Grammarly AI"> Grammarly AI</label>
+                        <label><input type="checkbox" name="q_info_12_items" value="Notion AI"> Notion AI</label>
+                        <label><input type="checkbox" name="q_info_12_items" value="GitHub Copilot"> GitHub Copilot</label>
+                        <label><input type="checkbox" name="q_info_12_items" value="Canva AI"> Canva AI</label>
+                        <label><input type="checkbox" name="q_info_12_items" value="Midjourney/DALL·E"> Midjourney / DALL·E</label>
+                        <label><input type="checkbox" name="q_info_12_items" value="AI nội bộ doanh nghiệp"> AI nội bộ doanh nghiệp</label>
+                        <label><input type="checkbox" name="q_info_12_items" value="Khác" id="q12_other_cb"> Khác (vui lòng ghi ra)</label>
+                    </div>
+                    <div class="other-input" id="q12_other_wrap">
+                        <input type="text" name="q_info_12_other" id="q_info_12_other" placeholder="Nhập công cụ AI khác...">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========== SECTION II: LIKERT SCALES (JS-rendered) ========== -->
+        <div id="likert-sections"></div>
+
+        <!-- ========== SUBMIT ========== -->
+        <div class="submit-area">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                &#128229;&ensp;GỬI PHIẾU KHẢO SÁT
+            </button>
+            <p style="margin-top:12px;font-size:13px;color:var(--text-light);">
+                Vui lòng kiểm tra lại tất cả câu trả lời trước khi gửi.
+            </p>
+        </div>
+
+    </form>
+
+    <!-- ========== THANK YOU ========== -->
+    <div class="thank-you" id="thankYou">
+        <div style="font-size:48px;margin-bottom:16px;">🎉</div>
+        <h2>Cảm ơn Anh/Chị đã tham gia!</h2>
+        <p>Phản hồi của Anh/Chị đã được ghi nhận thành công.<br>
+        Đóng góp của Anh/Chị có ý nghĩa rất quan trọng đối với nghiên cứu của chúng tôi.</p>
+        <p style="margin-top:20px;font-style:italic;font-size:13px;">Nhóm nghiên cứu RMIT Vietnam xin chân thành cảm ơn.</p>
+        <button class="btn btn-primary" onclick="resetSurvey()" style="margin-top:24px;">&#8635;&ensp;Điền lại từ đầu</button>
+    </div>
+
+</div><!-- end .survey-container -->
+
+<!-- ========== ADMIN TOGGLE ========== -->
+<div class="admin-toggle">
+    <button class="btn btn-accent btn-sm" onclick="toggleAdmin()" title="Quản trị">&#9881; Quản trị</button>
 </div>
-<div class="rmit-stripe"></div>
+<div class="admin-overlay" id="adminOverlay" onclick="closeAdmin()"></div>
+<div class="admin-panel" id="adminPanel">
+    <h3>⚙ Quản Trị Khảo Sát</h3>
 
-<!-- Progress bar -->
-<div class="progress-wrap" id="progress-wrap">
-  <span class="progress-label" id="progress-label">Tiến độ</span>
-  <div class="progress-bar-bg">
-    <div class="progress-bar-fill" id="progress-fill"></div>
-  </div>
-  <span class="progress-pct" id="progress-pct">0%</span>
+    <div id="adminLoginSection">
+        <div class="form-group">
+            <label>Mật khẩu quản trị</label>
+            <input type="password" id="adminPassword" placeholder="Nhập mật khẩu..." onkeydown="if(event.key==='Enter')verifyAdmin()">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="verifyAdmin()" style="width:100%">Đăng nhập</button>
+    </div>
+
+    <div id="adminContent" style="display:none;">
+        <div class="config-box">
+            <h5>🔗 Google Apps Script URL</h5>
+            <div style="margin-bottom:8px;">
+                Trạng thái: <span id="urlStatus" class="status-badge offline"><span class="dot"></span>&nbsp;Chưa cấu hình</span>
+            </div>
+            <input type="text" id="googleScriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
+            <div class="hint">
+                1. Tạo Google Sheet mới → Extensions → Apps Script<br>
+                2. Dán mã từ nút "Xem Apps Script mẫu" bên dưới<br>
+                3. Deploy → Web App → Anyone → Copy URL và dán vào ô trên<br>
+                4. Nhấn "Lưu URL"
+            </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+            <button class="btn btn-primary btn-sm" onclick="saveGoogleUrl()" style="flex:1">💾 Lưu URL</button>
+            <button class="btn btn-sm" style="background:#eee;color:#666;flex:1" onclick="clearGoogleUrl()">🗑 Xóa URL</button>
+        </div>
+        <button class="btn btn-sm" style="background:#f0f2f8;color:var(--primary);width:100%;margin-bottom:16px;" onclick="showGASCode()">📄 Xem Google Apps Script mẫu</button>
+
+        <hr style="margin:16px 0; border:none; border-top:1px solid var(--border);">
+        <h4 style="font-size:14px;margin-bottom:8px;color:var(--primary);">📊 Dữ liệu khảo sát (cục bộ)</h4>
+        <p style="font-size:12px;color:var(--text-light);margin-bottom:10px;">Đã ghi nhận: <strong id="responseCount">0</strong> phản hồi</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-sm" style="background:#27ae60;color:#fff;" onclick="exportCSV()">⬇ CSV</button>
+            <button class="btn btn-sm" style="background:#2980b9;color:#fff;" onclick="exportJSON()">⬇ JSON</button>
+            <button class="btn btn-sm" style="background:#e74c3c;color:#fff;" onclick="clearData()">✕ Xóa tất cả</button>
+        </div>
+
+        <div style="margin-top:16px;">
+            <button class="btn btn-sm btn-accent" onclick="closeAdmin()" style="width:100%">✕ Đóng</button>
+        </div>
+    </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!--  MAIN FORM                                                              -->
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<div class="container">
-<form id="survey-form" novalidate>
+<!-- ========== TOAST ========== -->
+<div class="toast" id="toast"></div>
 
-  <!-- ── PHẦN 1 – GIỚI THIỆU ────────────────────────────────────────────── -->
-  <div class="card">
-    <div class="card-header dark">
-      <h2>PHẦN 1: GIỚI THIỆU VỀ NGHIÊN CỨU VÀ BỐI CẢNH</h2>
-    </div>
-    <div class="card-body intro-body">
-      <p>Kính chào Quý Anh/Chị,</p>
-      <p>
-        Chúng tôi là nhóm nghiên cứu đến từ <strong>RMIT University Vietnam</strong>. Hiện nay, chúng tôi đang
-        thực hiện một nghiên cứu học thuật về <em>Sự hợp tác giữa Con người và Trí tuệ nhân tạo
-        (Human – AI Collaboration)</em> trong môi trường doanh nghiệp.
-      </p>
-      <p>
-        Nghiên cứu tập trung tìm hiểu cách nhân viên và tổ chức đang ứng dụng các công nghệ AI trong công việc
-        hằng ngày, cũng như cách con người tương tác, phối hợp và ra quyết định cùng với AI. Đặc biệt, nghiên
-        cứu quan tâm đến việc sử dụng các công cụ AI tạo sinh (Generative AI), nội dung do AI tạo ra, và các
-        yếu tố ảnh hưởng đến khả năng đánh giá, xác minh và sử dụng thông tin trong môi trường làm việc hiện đại.
-      </p>
-
-      <h3>Khung bối cảnh</h3>
-      <p>
-        Trong môi trường làm việc hiện nay, nhân viên ngày càng thường xuyên tiếp xúc với email, tin nhắn,
-        tài liệu, báo cáo phản hồi khách hàng và khối lượng công việc ngày càng tăng. Nhiều nhân viên đã bắt
-        đầu sử dụng AI như một công cụ hỗ trợ và trợ lý ảo. Việc nghiên cứu mối quan hệ hợp tác giữa con
-        người và AI trở nên cần thiết để hiểu rõ hơn cách AI hỗ trợ công việc, mức độ tin tưởng của người
-        dùng đối với AI, cũng như các yếu tố ảnh hưởng đến hiệu quả phối hợp.
-      </p>
-
-      <h3>Cam kết</h3>
-      <ul>
-        <li>Khảo sát hoàn toàn phục vụ mục đích nghiên cứu học thuật.</li>
-        <li>Không có câu trả lời đúng hoặc sai.</li>
-        <li>Chúng tôi mong Anh/Chị trả lời dựa trên trải nghiệm và cảm nhận thực tế trong công việc của mình.</li>
-        <li>Mọi thông tin thu thập sẽ được bảo mật và chỉ sử dụng cho mục đích nghiên cứu.</li>
-      </ul>
-
-      <!-- Consent -->
-      <div class="consent-box question" id="q-consent">
-        <label class="q-label">
-          Tôi đã hiểu mục đích của khảo sát này và đồng ý tham gia khảo sát:
-          <span class="req">*</span>
-        </label>
-        <ul class="opt-list">
-          <li><label><input type="radio" name="consent" value="yes" required /> Có</label></li>
-          <li><label><input type="radio" name="consent" value="no" /> Không</label></li>
-        </ul>
-        <div class="err-msg" id="err-consent">Vui lòng chọn một đáp án.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── I – THÔNG TIN CƠ BẢN ───────────────────────────────────────────── -->
-  <div class="card">
-    <div class="card-header">
-      <h2>I. THÔNG TIN CƠ BẢN</h2>
-      <div class="subtitle">Vui lòng cho biết thông tin về bản thân và tổ chức của Anh/Chị.</div>
-    </div>
-    <div class="card-body">
-
-      <!-- Q1 – Gender -->
-      <div class="question" id="q-gender">
-        <label class="q-label">1. Giới tính <span class="req">*</span></label>
-        <ul class="opt-list">
-          <li><label><input type="radio" name="gender" value="Nam" required /> Nam</label></li>
-          <li><label><input type="radio" name="gender" value="Nữ" /> Nữ</label></li>
-          <li><label><input type="radio" name="gender" value="Khác" /> Khác</label></li>
-        </ul>
-        <div class="err-msg" id="err-gender">Vui lòng chọn một đáp án.</div>
-      </div>
-
-      <hr class="q-divider" />
-
-      <!-- Q2 – Age -->
-      <div class="question" id="q-age">
-        <label class="q-label">2. Độ tuổi <span class="req">*</span></label>
-        <ul class="opt-list">
-          <li><label><input type="radio" name="age" value="18-24" required /> 18 – 24</label></li>
-          <li><label><input type="radio" name="age" value="25-34" /> 25 – 34</label></li>
-          <li><label><input type="radio" name="age" value="35-45" /> 35 – 45</label></li>
-          <li><label><input type="radio" name="age" value=">45" /> &gt; 45</label></li>
-        </ul>
-        <div class="err-msg" id="err-age">Vui lòng chọn một đáp án.</div>
-      </div>
-
-      <hr class="q-divider" />
-
-      <!-- Q3 – Position -->
-      <div class="question" id="q-position">
-        <label class="q-label">3. Chức vụ hiện tại của anh/chị trong tổ chức là gì? <span class="req">*</span></label>
-        <ul class="opt-list">
-          <li><label><input type="radio" name="position" value="CEO" required /> Giám đốc điều hành (CEO)</label></li>
-          <li><label><input type="radio" name="position" value="CFO" /> Giám đốc tài chính (CFO)</label></li>
-          <li><label><input type="radio" name="position" value="CTO" /> Giám đốc công nghệ (CTO)</label></li>
-          <li><label><input type="radio" name="position" value="CMO" /> Giám đốc marketing (CMO)</label></li>
-          <li><label><input type="radio" name="position" value="CHRO" /> Giám đốc nhân sự (CHRO)</label></li>
-          <li><label><input type="radio" name="position" value="CIO" /> Giám đốc thông tin (CIO)</label></li>
-          <li><label><input type="radio" name="position" value="Manager" /> Trưởng phòng/quản lý</label></li>
-          <li><label><input type="radio" name="position" value="Staff" /> Nhân viên</label></li>
-          <li>
-            <label>
-              <input type="radio" name="position" value="Other" onchange="toggleOther(this,'position-other')" />
-              Khác (vui lòng ghi ra):
-            </label>
-            <input type="text" class="other-text" id="position-other" placeholder="Nhập chức vụ..." />
-          </li>
-        </ul>
-        <div class="err-msg" id="err-position">Vui lòng chọn một đáp án.</div>
-      </div>
-
-      <hr class="q-divider" />
-
-      <!-- Q4 – Industry (checkbox) -->
-      <div class="question" id="q-industry">
-        <label class="q-label">
-          4. Lĩnh vực hoạt động chính của doanh nghiệp/tổ chức nơi Anh/Chị đang làm việc là gì?
-          <span class="req">*</span>
-          <span class="q-hint">Có thể chọn nhiều đáp án</span>
-        </label>
-        <ul class="opt-list">
-          <li><label><input type="checkbox" name="industry" value="Logistics" /> Hậu cần / Quản trị chuỗi cung ứng</label></li>
-          <li><label><input type="checkbox" name="industry" value="Manufacturing" /> Sản xuất và Công nghiệp</label></li>
-          <li><label><input type="checkbox" name="industry" value="IT" /> Công nghệ thông tin và Viễn thông</label></li>
-          <li><label><input type="checkbox" name="industry" value="Retail" /> Bán lẻ và Hàng tiêu dùng</label></li>
-          <li><label><input type="checkbox" name="industry" value="Finance" /> Tài chính và Ngân hàng</label></li>
-          <li><label><input type="checkbox" name="industry" value="Education" /> Giáo dục</label></li>
-          <li><label><input type="checkbox" name="industry" value="Healthcare" /> Chăm sóc sức khỏe và Dược phẩm</label></li>
-          <li><label><input type="checkbox" name="industry" value="Construction" /> Xây dựng / Công trình / Liên quan đến xây dựng</label></li>
-          <li>
-            <label>
-              <input type="checkbox" name="industry" value="Other" onchange="toggleOther(this,'industry-other')" />
-              Khác (vui lòng ghi ra):
-            </label>
-            <input type="text" class="other-text" id="industry-other" placeholder="Nhập lĩnh vực..." />
-          </li>
-        </ul>
-        <div class="err-msg" id="err-industry">Vui lòng chọn ít nhất một đáp án.</div>
-      </div>
-
-      <hr class="q-divider" />
-
-      <!-- Q5 – Company size -->
-      <div class="question" id="q-size">
-        <label class="q-label">5. Doanh nghiệp của anh/chị có khoảng bao nhiêu nhân sự? <span class="req">*</span></label>
-        <ul class="opt-list">
-          <li><label><input type="radio" name="size" value="1-49" required /> 1 – 49 nhân sự</label></li>
-          <li><label><input type="radio" name="size" value="50-249" /> 50 – 249 nhân sự</label></li>
-          <li><label><input type="radio" name="size" value="250-999" /> 250 – 999 nhân sự</label></li>
-          <li><label><input type="radio" name="size" value="1000+" /> 1000+ nhân sự</label></li>
-        </ul>
-        <div class="err-msg" id="err-size">Vui lòng chọn một đáp án.</div>
-      </div>
-
-      <hr class="q-divider" />
-
-      <!-- Q6 – Revenue -->
-      <div class="question" id="q-revenue">
-        <label class="q-label">6. Doanh nghiệp anh/chị có doanh thu hàng năm khoảng bao nhiêu? <span class="req">*</span></label>
-        <ul class="opt-list">
-          <li><label><input type="radio" name="revenue" value="<3B" required /> Dưới 3 tỷ VND</label></li>
-          <li><label><input type="radio" name="revenue" value="3-50B" /> Từ 3 tỷ đến 50 tỷ VND</label></li>
-          <li><label><input type="radio" name="revenue" value="50-300B" /> Từ 50 tỷ đến 300 tỷ VND</label></li>
-          <li><label><input type="radio" name="revenue" value=">300B" /> Trên 300 tỷ VND</label></li>
-          <li>
-            <label>
-              <input type="radio" name="revenue" value="Other" onchange="toggleOther(this,'revenue-other')" />
-              Khác (vui lòng ghi ra):
-            </label>
-            <input type="text" class="other-text" id="revenue-other" placeholder="Nhập doanh thu..." />
-          </li>
-        </ul>
-        <div class="err-msg" id="err-revenue">Vui lòng chọn một đáp án.</div>
-      </div>
-
-      <hr class="q-divider" />
-
-      <!-- Q7 – Years in operation -->
-      <div class="question" id="q-years-op">
-        <label class="q-label">7. Doanh nghiệp của anh/chị đã hoạt động được khoảng bao nhiêu năm? <span class="req">*</span></label>
-        <ul class="opt-list">
-          <li><label><input type="radio" name="years_op" value="<5" required /> Dưới 5 năm</label></li>
-          <li><label><input type="radio" name="years_op" value="5-10" /> Từ 5 đến 10 năm</label></li>
-          <li><label><input type="radio" name="years_op" value="11-20" /> Từ 11 đến 20 năm</label></li>
-          <li><label><input type="radio" name="years_op" value=">20" /> Trên 20 năm</label></li>
-        </ul>
-        <div class="err-msg" id="err-years-op">Vui lòng chọn một đáp án.</div>
-      </div>
-
-      <hr class="q-divider" />
-
-      <!-- Q8 – Tenure -->
-      <div class="question" id="q-tenure">
-        <label class="q-label">8. Anh/chị đã làm việc trong tổ chức hiện tại được bao lâu? <span class="req">*</span></label>
-        <ul class="opt-list">
-          <li><label><input type="radio" name="tenure" value="<1" required /> Dưới 1 năm</label></li>
-          <li><label><input type="radio" name="tenure" value="1-5" /> Từ 1 đến 5 năm</label></li>
-          <li><label><input type="radio" name="tenure" value="6-10" /> Từ 6 đến 10 năm</label></li>
-          <li><label><input type="radio" name="tenure" value=">10" /> Trên 10 năm</label></li>
-        </ul>
-        <div class="err-msg" id="err-tenure">Vui lòng chọn một đáp án.</div>
-      </div>
-
-      <hr class="q-divider" />
-
-      <!-- Q9 – AI adoption level -->
-      <div class="question" id="q-ai-level">
-        <label class="q-label">9. Doanh nghiệp/tổ chức của Anh/Chị hiện đang ứng dụng AI ở mức độ nào? <span class="req">*</span></label>
-        <ul class="opt-list">
-          <li><label><input type="radio" name="ai_level" value="none" required /> Chưa sử dụng AI</label></li>
-          <li><label><input type="radio" name="ai_level" value="pilot" /> Đang thử nghiệm AI ở quy mô nhỏ</label></li>
-          <li><label><input type="radio" name="ai_level" value="partial" /> Sử dụng AI trong một số phòng ban/chức năng</label></li>
-          <li><label><input type="radio" name="ai_level" value="wide" /> Sử dụng AI rộng rãi trong toàn doanh nghiệp</label></li>
-          <li><label><input type="radio" name="ai_level" value="integrated" /> AI đã được tích hợp sâu vào quy trình vận hành và ra quyết định</label></li>
-        </ul>
-        <div class="err-msg" id="err-ai-level">Vui lòng chọn một đáp án.</div>
-      </div>
-
-      <hr class="q-divider" />
-
-      <!-- Q10 – AI application areas (checkbox) -->
-      <div class="question" id="q-ai-areas">
-        <label class="q-label">
-          10. Doanh nghiệp/tổ chức của Anh/Chị chủ yếu ứng dụng AI trong lĩnh vực hoặc hoạt động nào?
-          <span class="req">*</span>
-          <span class="q-hint">Có thể chọn nhiều đáp án</span>
-        </label>
-        <ul class="opt-list">
-          <li><label><input type="checkbox" name="ai_areas" value="data" /> Phân tích dữ liệu và báo cáo</label></li>
-          <li><label><input type="checkbox" name="ai_areas" value="automation" /> Tự động hóa quy trình làm việc</label></li>
-          <li><label><input type="checkbox" name="ai_areas" value="customer" /> Chăm sóc khách hàng</label></li>
-          <li><label><input type="checkbox" name="ai_areas" value="marketing" /> Marketing và sáng tạo nội dung</label></li>
-          <li><label><input type="checkbox" name="ai_areas" value="logistics" /> Logistics và chuỗi cung ứng</label></li>
-          <li><label><input type="checkbox" name="ai_areas" value="hr" /> Quản trị nhân sự</label></li>
-          <li><label><input type="checkbox" name="ai_areas" value="decision" /> Hỗ trợ ra quyết định quản lý</label></li>
-          <li><label><input type="checkbox" name="ai_areas" value="rnd" /> Nghiên cứu và phát triển (R&amp;D)</label></li>
-          <li><label><input type="checkbox" name="ai_areas" value="quality" /> Kiểm soát chất lượng/vận hành</label></li>
-          <li>
-            <label>
-              <input type="checkbox" name="ai_areas" value="Other" onchange="toggleOther(this,'ai-areas-other')" />
-              Khác (vui lòng ghi ra):
-            </label>
-            <input type="text" class="other-text" id="ai-areas-other" placeholder="Nhập lĩnh vực..." />
-          </li>
-        </ul>
-        <div class="err-msg" id="err-ai-areas">Vui lòng chọn ít nhất một đáp án.</div>
-      </div>
-
-      <hr class="q-divider" />
-
-      <!-- Q11 – Duration of AI use -->
-      <div class="question" id="q-ai-dur">
-        <label class="q-label">11. Anh/Chị đã sử dụng các công cụ AI trong bao lâu? <span class="req">*</span></label>
-        <ul class="opt-list">
-          <li><label><input type="radio" name="ai_dur" value="<6m" required /> Dưới 6 tháng</label></li>
-          <li><label><input type="radio" name="ai_dur" value="6m-1y" /> Từ 6 tháng đến dưới 1 năm</label></li>
-          <li><label><input type="radio" name="ai_dur" value="1-3y" /> Từ 1 đến dưới 3 năm</label></li>
-          <li><label><input type="radio" name="ai_dur" value="3-5y" /> Từ 3 đến dưới 5 năm</label></li>
-          <li><label><input type="radio" name="ai_dur" value=">5y" /> Trên 5 năm</label></li>
-        </ul>
-        <div class="err-msg" id="err-ai-dur">Vui lòng chọn một đáp án.</div>
-      </div>
-
-      <hr class="q-divider" />
-
-      <!-- Q12 – AI tools (checkbox) -->
-      <div class="question" id="q-ai-tools">
-        <label class="q-label">
-          12. Anh/Chị thường sử dụng những công cụ AI nào trong công việc?
-          <span class="req">*</span>
-          <span class="q-hint">Có thể chọn nhiều đáp án</span>
-        </label>
-        <ul class="opt-list">
-          <li><label><input type="checkbox" name="ai_tools" value="ChatGPT" /> ChatGPT</label></li>
-          <li><label><input type="checkbox" name="ai_tools" value="Gemini" /> Gemini</label></li>
-          <li><label><input type="checkbox" name="ai_tools" value="Claude" /> Claude</label></li>
-          <li><label><input type="checkbox" name="ai_tools" value="Copilot" /> Microsoft Copilot</label></li>
-          <li><label><input type="checkbox" name="ai_tools" value="Grammarly" /> Grammarly AI</label></li>
-          <li><label><input type="checkbox" name="ai_tools" value="Notion" /> Notion AI</label></li>
-          <li><label><input type="checkbox" name="ai_tools" value="GHCopilot" /> GitHub Copilot</label></li>
-          <li><label><input type="checkbox" name="ai_tools" value="Canva" /> Canva AI</label></li>
-          <li><label><input type="checkbox" name="ai_tools" value="Midjourney" /> Midjourney / DALL·E</label></li>
-          <li><label><input type="checkbox" name="ai_tools" value="Internal" /> AI nội bộ doanh nghiệp</label></li>
-          <li>
-            <label>
-              <input type="checkbox" name="ai_tools" value="Other" onchange="toggleOther(this,'ai-tools-other')" />
-              Khác (vui lòng ghi ra):
-            </label>
-            <input type="text" class="other-text" id="ai-tools-other" placeholder="Nhập công cụ..." />
-          </li>
-        </ul>
-        <div class="err-msg" id="err-ai-tools">Vui lòng chọn ít nhất một đáp án.</div>
-      </div>
-
-    </div><!-- /card-body -->
-  </div><!-- /card -->
-
-  <!-- ── II – THÔNG TIN KHẢO SÁT ────────────────────────────────────────── -->
-  <div class="card">
-    <div class="card-header">
-      <h2>II. THÔNG TIN KHẢO SÁT</h2>
-      <div class="subtitle">
-        Vui lòng đánh giá từng mệnh đề theo thang điểm 5 bậc:
-        <strong>1 = Rất không đồng ý &nbsp;→&nbsp; 5 = Rất đồng ý</strong>
-      </div>
-    </div>
-    <div class="card-body" id="likert-sections">
-      <!-- Likert sections rendered by JavaScript below -->
-    </div>
-  </div>
-
-  <!-- ── SUBMIT ──────────────────────────────────────────────────────────── -->
-  <div class="submit-wrap">
-    <button type="submit" class="btn-submit">GỬI KHẢO SÁT</button>
-    <p class="submit-note">
-      Bằng cách nhấn "Gửi khảo sát", Anh/Chị xác nhận rằng tất cả câu trả lời
-      phản ánh trung thực quan điểm và trải nghiệm cá nhân.
-    </p>
-  </div>
-
-</form>
-
-<!-- ── THANK-YOU SCREEN ───────────────────────────────────────────────────── -->
-<div id="thank-you">
-  <div class="ty-icon">🎉</div>
-  <h2>Cảm ơn Anh/Chị rất nhiều!</h2>
-  <p>Phản hồi của Anh/Chị đã được ghi nhận và sẽ đóng góp quan trọng vào nghiên cứu của chúng tôi.</p>
-  <p style="margin-top:8px;">Trân trọng — Nhóm nghiên cứu RMIT University Vietnam</p>
-</div>
-
-</div><!-- /container -->
-
-<footer>
-  &copy; 2025 RMIT University Vietnam &nbsp;·&nbsp; Nghiên cứu học thuật &nbsp;·&nbsp;
-  Human – AI Collaboration Study &nbsp;·&nbsp; Mọi thông tin được bảo mật
-</footer>
-
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!--  JAVASCRIPT                                                             -->
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
 <script>
-/* ─────────────────────────────────────────────────────────────────────────
-   CONFIG
-   Replace GOOGLE_FORM_URL with the Published URL from create_google_form.gs
-   Leave it as '' to show the built-in thank-you screen instead.
-   ───────────────────────────────────────────────────────────────────────── */
-var GOOGLE_FORM_URL = 'https://forms.gle/cYcf8pupBgEn1RBbA';
-
-/* ─────────────────────────────────────────────────────────────────────────
-   LIKERT SECTION DATA
-   ───────────────────────────────────────────────────────────────────────── */
-var LIKERT_COLS = ['Rất không đồng ý', 'Không đồng ý', 'Bình thường', 'Đồng ý', 'Rất đồng ý'];
-
-var LIKERT_SECTIONS = [
-  {
-    id: 'AI_CAP',
-    title: 'Năng lực của AI (AI_CAP)',
-    hint: 'Các mệnh đề sau liên quan đến năng lực của các công cụ AI mà Anh/Chị sử dụng trong công việc.',
-    rows: [
-      'Các công cụ AI tôi sử dụng tạo ra kết quả chính xác và đáng tin cậy.',
-      'Các công cụ AI có thể điều chỉnh phản hồi phù hợp với các nhiệm vụ và bối cảnh khác nhau.',
-      'Các công cụ AI có thể xử lý nhiều định dạng nội dung (văn bản, hình ảnh, dữ liệu, mã lệnh).',
-      'Các công cụ AI có thể tự động thực hiện các tác vụ phức tạp, nhiều bước khi cần.',
-      'Các công cụ AI cung cấp kết quả nhất quán và mạch lạc qua các phiên làm việc khác nhau.'
-    ]
-  },
-  {
-    id: 'XAI',
-    title: 'Khả năng giải thích và minh bạch (XAI)',
-    hint: 'Các mệnh đề sau liên quan đến khả năng giải thích và tính minh bạch của các công cụ AI mà Anh/Chị sử dụng.',
-    rows: [
-      'Tôi có thể hiểu cách AI đưa ra các gợi ý hoặc kết quả của nó.',
-      'AI chỉ rõ khi nó không chắc chắn hoặc có thể sai.',
-      'Giao diện AI hiển thị nguồn tham khảo, các bước lập luận, hoặc bằng chứng cho kết quả của nó.',
-      'Tôi có các điểm kiểm soát để xem xét và sửa chữa kết quả AI trước khi hoàn thiện.',
-      'Khi AI mắc lỗi, tôi có thể hiểu điều gì đã xảy ra sai.'
-    ]
-  },
-  {
-    id: 'GOV',
-    title: 'Quản trị và chiến lược AI (GOV)',
-    hint: 'Các mệnh đề sau liên quan đến chính sách, quy định và định hướng quản trị AI tại doanh nghiệp/tổ chức của Anh/Chị.',
-    rows: [
-      'Tổ chức của tôi có các chính sách và quy định rõ ràng cho việc sử dụng AI trong công việc hàng ngày.',
-      'Có các hướng dẫn đạo đức trong tổ chức của tôi chi phối cách AI nên được sử dụng.',
-      'Rõ ràng ai chịu trách nhiệm khi AI tạo ra các kết quả sai hoặc có vấn đề.',
-      'Có ranh giới được xác định rõ cho những gì AI có thể tự quyết định so với những gì cần sự phê duyệt của con người.',
-      'Tổ chức của tôi có các biện pháp bảo vệ dữ liệu cá nhân khi sử dụng công cụ AI.'
-    ]
-  },
-  {
-    id: 'INN',
-    title: 'Văn hóa đổi mới (INN)',
-    hint: 'Các mệnh đề sau liên quan đến văn hóa đổi mới và sự hỗ trợ đối với việc ứng dụng AI tại doanh nghiệp/tổ chức của Anh/Chị.',
-    rows: [
-      'Tôi cảm thấy an toàn khi thử nghiệm với các công cụ AI mà không sợ bị đổ lỗi nếu mắc sai lầm.',
-      'Tổ chức của tôi sẵn sàng thử các quy trình làm việc mới và độc đáo dựa trên AI.',
-      'Tổ chức của tôi khen thưởng việc sử dụng AI sáng tạo, không chỉ tốc độ hay hiệu suất.',
-      'Nhân viên từ các phòng ban khác nhau cộng tác hiệu quả khi sử dụng công cụ AI.',
-      'Tổ chức của tôi tích cực khuyến khích học hỏi về các năng lực và ứng dụng AI mới.'
-    ]
-  },
-  {
-    id: 'COL_DYN',
-    title: 'Động lực cộng tác (COL_DYN)',
-    hint: 'Các mệnh đề sau liên quan đến cách Anh/Chị phối hợp và làm việc cùng các công cụ AI trong công việc.',
-    rows: [
-      'Tôi chủ động trao đổi qua lại với AI để cùng tinh chỉnh và cải thiện kết quả.',
-      'Làm việc với AI giúp tôi tạo ra các ý tưởng mà tôi không thể tự nghĩ ra.',
-      'Tôi đàm phán ý nghĩa với AI bằng cách diễn đạt lại, làm rõ, và phát triển thêm các phản hồi của nó.',
-      'Tôi kết hợp chuyên môn của mình với các hiểu biết do AI tạo ra để đạt kết quả tốt hơn.',
-      'AI giúp tôi học các khái niệm mới và xây dựng hiểu biết từng bước.'
-    ]
-  },
-  {
-    id: 'TRUST',
-    title: 'Tin tưởng và chấp nhận (TRUST)',
-    hint: 'Các mệnh đề sau liên quan đến mức độ tin tưởng và chấp nhận của Anh/Chị đối với các công cụ AI.',
-    rows: [
-      'Tôi tin tưởng các công cụ AI mà tôi sử dụng cung cấp kết quả hữu ích và phù hợp.',
-      'Tôi tự tin dựa vào các khuyến nghị của AI cho các quyết định quan trọng.',
-      'Tôi không lo lắng bị đánh lừa bởi AI nghe giống người nhưng thiếu hiểu biết thực sự.',
-      'Tôi tin rằng các công cụ AI tôi sử dụng xử lý dữ liệu của tôi một cách có trách nhiệm và an toàn.',
-      'Tôi tin rằng lợi ích của việc sử dụng AI vượt trội hơn các rủi ro tiềm ẩn.'
-    ]
-  },
-  {
-    id: 'HCR',
-    title: 'Sẵn sàng nhận thức của con người (HCR)',
-    hint: 'Các mệnh đề sau liên quan đến năng lực, kỹ năng và sự sẵn sàng của Anh/Chị khi làm việc với AI.',
-    rows: [
-      'Tôi có đủ kiến thức chuyên môn để đánh giá liệu kết quả AI có chính xác cho nhiệm vụ của tôi không.',
-      'Tôi biết cách viết các câu lệnh (prompt) hiệu quả để có kết quả tốt nhất từ AI.',
-      'Tôi kiểm tra phê phán các kết quả AI về lỗi, thiên kiến, hoặc thông tin thiếu sót thay vì chấp nhận một cách mù quáng.',
-      'Tôi liên tục học các cách mới để làm việc với AI và cải thiện kỹ năng cộng tác của mình.',
-      'Các nhiệm vụ tôi sử dụng AI đủ phức tạp để hưởng lợi từ cộng tác Người-AI.'
-    ]
-  },
-  {
-    id: 'LP',
-    title: 'Hiệu suất hậu cần – Logistics (LP)',
-    hint: 'Các mệnh đề sau liên quan đến hiệu quả hoạt động logistics tại doanh nghiệp/tổ chức của Anh/Chị.',
-    rows: [
-      'Hệ thống logistics đảm bảo giao hàng đúng thời gian cam kết.',
-      'Tỷ lệ đơn hàng được xử lý chính xác (đúng số lượng, đúng sản phẩm) là cao.',
-      'Hệ thống logistics có khả năng phản hồi nhanh với các thay đổi về nhu cầu khách hàng.',
-      'Hoạt động logistics được thực hiện với chi phí tối ưu so với hiệu quả đạt được.',
-      'Hệ thống cho phép theo dõi và minh bạch thông tin vận chuyển theo thời gian thực.',
-      'Dịch vụ logistics đáp ứng tốt kỳ vọng của khách hàng về độ tin cậy và tính nhất quán.',
-      'Tổng thể, hoạt động logistics góp phần cải thiện hiệu suất kinh doanh của tổ chức.'
-    ]
-  },
-  {
-    id: 'RES',
-    title: 'Hiệu suất phục hồi (RES)',
-    hint: 'Các mệnh đề sau liên quan đến khả năng phục hồi và thích nghi khi làm việc với AI.',
-    rows: [
-      'Khi AI đưa ra kết quả sai hoặc không phù hợp, tôi có thể nhanh chóng điều chỉnh cách làm việc để vẫn tiếp tục nhiệm vụ hiệu quả.',
-      'Khi công cụ AI thay đổi hành vi, giao diện, hoặc chất lượng phản hồi, tôi có thể thích nghi mà không làm gián đoạn đáng kể công việc.',
-      'Ngay cả khi AI gây hiểu nhầm hoặc bỏ sót thông tin, tôi vẫn có thể duy trì phối hợp hiệu quả bằng cách kiểm tra, làm rõ, và hiệu chỉnh đầu ra.',
-      'Tôi có thể chuyển linh hoạt giữa hỗ trợ của AI và phán đoán của bản thân khi tình huống yêu cầu.',
-      'Sau những trải nghiệm không tốt với AI, tôi vẫn có thể lấy lại cách sử dụng phù hợp thay vì từ bỏ hoặc phụ thuộc mù quáng.',
-      'Làm việc với AI giúp tôi học từ gián đoạn và cải thiện cách cộng tác của mình trong các nhiệm vụ sau.'
-    ]
-  },
-  {
-    id: 'EP',
-    title: 'Hiệu suất môi trường (EP)',
-    hint: 'Các mệnh đề sau liên quan đến hiệu quả môi trường thông qua cộng tác giữa con người và AI tại tổ chức của Anh/Chị.',
-    rows: [
-      'Sự cộng tác giữa con người và AI giúp tổ chức xác định các rủi ro môi trường và đưa ra các quyết định xanh dựa trên dữ liệu.',
-      'Các công cụ AI trong tổ chức cung cấp phản hồi theo thời gian thực giúp giảm tiêu thụ năng lượng và tác động môi trường tại nơi làm việc.',
-      'Sự cộng tác giữa con người và AI giúp tổ chức đáp ứng hiệu quả hơn các yêu cầu tuân thủ quy định môi trường.',
-      'Ban lãnh đạo tổ chức sử dụng các công cụ AI để thiết lập và giám sát các mục tiêu bảo vệ môi trường và tuân thủ quy định.',
-      'Tổ chức chủ động sử dụng AI kết hợp với giám sát của con người để theo dõi và giảm thiểu tiêu thụ năng lượng và lượng rác thải phát sinh.',
-      'Sự cộng tác giữa con người và AI đã giúp tổ chức phát triển các giải pháp xanh sáng tạo và cải thiện các thực hành bền vững về môi trường.'
-    ]
-  },
-  {
-    id: 'SP',
-    title: 'Hiệu suất bền vững (SP)',
-    hint: 'Các mệnh đề sau liên quan đến kết quả phát triển bền vững của doanh nghiệp/tổ chức.',
-    rows: [
-      'Doanh nghiệp đã giảm tác động tiêu cực đến môi trường thông qua việc tiết kiệm năng lượng, tài nguyên và giảm chất thải trong hoạt động.',
-      'Doanh nghiệp đã cải thiện hiệu quả việc tuân thủ và quản lý các yêu cầu liên quan đến môi trường.',
-      'Doanh nghiệp đã nâng cao phúc lợi, điều kiện làm việc và sự phát triển của người lao động.',
-      'Doanh nghiệp tạo ra giá trị tích cực hơn cho khách hàng, cộng đồng và các bên liên quan.',
-      'Việc theo đuổi phát triển bền vững đã giúp doanh nghiệp cải thiện hiệu quả chi phí và hiệu quả hoạt động tổng thể.',
-      'Các hoạt động bền vững đã góp phần nâng cao năng lực cạnh tranh và kết quả kinh doanh dài hạn của doanh nghiệp.'
-    ]
-  }
+// ================================================================
+// SURVEY CONSTRUCTS — 11 constructs, 5-point Likert
+// ================================================================
+const SURVEY_SECTIONS = [
+    {
+        varPrefix: 'ai_cap',
+        title: 'NHÓM 1 — NĂNG LỰC CỦA AI (AI_CAP)',
+        subtitle: 'AI Capability',
+        instruction: 'Xin vui lòng đánh giá các mệnh đề sau liên quan đến năng lực của các công cụ AI mà Anh/Chị sử dụng trong công việc.',
+        questions: [
+            'Các công cụ AI tôi sử dụng tạo ra kết quả chính xác và đáng tin cậy.',
+            'Các công cụ AI có thể điều chỉnh phản hồi phù hợp với các nhiệm vụ và bối cảnh khác nhau.',
+            'Các công cụ AI có thể xử lý nhiều định dạng nội dung (văn bản, hình ảnh, dữ liệu, mã lệnh).',
+            'Các công cụ AI có thể tự động thực hiện các tác vụ phức tạp, nhiều bước khi cần.',
+            'Các công cụ AI cung cấp kết quả nhất quán và mạch lạc qua các phiên làm việc khác nhau.'
+        ]
+    },
+    {
+        varPrefix: 'xai',
+        title: 'NHÓM 2 — KHẢ NĂNG GIẢI THÍCH VÀ MINH BẠCH (XAI)',
+        subtitle: 'Explainability & Transparency',
+        instruction: 'Xin vui lòng đánh giá các mệnh đề sau liên quan đến khả năng giải thích và tính minh bạch của các công cụ AI mà Anh/Chị sử dụng.',
+        questions: [
+            'Tôi có thể hiểu cách AI đưa ra các gợi ý hoặc kết quả của nó.',
+            'AI chỉ rõ khi nó không chắc chắn hoặc có thể sai.',
+            'Giao diện AI hiển thị nguồn tham khảo, các bước lập luận, hoặc bằng chứng cho kết quả của nó.',
+            'Tôi có các điểm kiểm soát để xem xét và sửa chữa kết quả AI trước khi hoàn thiện.',
+            'Khi AI mắc lỗi, tôi có thể hiểu điều gì đã xảy ra sai.'
+        ]
+    },
+    {
+        varPrefix: 'gov',
+        title: 'NHÓM 3 — QUẢN TRỊ VÀ CHIẾN LƯỢC AI (GOV)',
+        subtitle: 'AI Governance & Strategy',
+        instruction: 'Xin vui lòng đánh giá các mệnh đề sau liên quan đến chính sách, quy định và định hướng quản trị AI tại doanh nghiệp/tổ chức của Anh/Chị.',
+        questions: [
+            'Tổ chức của tôi có các chính sách và quy định rõ ràng cho việc sử dụng AI trong công việc hàng ngày.',
+            'Có các hướng dẫn đạo đức trong tổ chức của tôi chi phối cách AI nên được sử dụng.',
+            'Rõ ràng ai chịu trách nhiệm khi AI tạo ra các kết quả sai hoặc có vấn đề.',
+            'Có ranh giới được xác định rõ cho những gì AI có thể tự quyết định so với những gì cần sự phê duyệt của con người.',
+            'Tổ chức của tôi có các biện pháp bảo vệ dữ liệu cá nhân khi sử dụng công cụ AI.'
+        ]
+    },
+    {
+        varPrefix: 'inn',
+        title: 'NHÓM 4 — VĂN HÓA ĐỔI MỚI (INN)',
+        subtitle: 'Innovation Culture',
+        instruction: 'Xin vui lòng đánh giá các mệnh đề sau liên quan đến văn hóa đổi mới và sự hỗ trợ đối với việc ứng dụng AI tại doanh nghiệp/tổ chức của Anh/Chị.',
+        questions: [
+            'Tôi cảm thấy an toàn khi thử nghiệm với các công cụ AI mà không sợ bị đổ lỗi nếu mắc sai lầm.',
+            'Tổ chức của tôi sẵn sàng thử các quy trình làm việc mới và độc đáo dựa trên AI.',
+            'Tổ chức của tôi khen thưởng việc sử dụng AI sáng tạo, không chỉ tốc độ hay hiệu suất.',
+            'Nhân viên từ các phòng ban khác nhau cộng tác hiệu quả khi sử dụng công cụ AI.',
+            'Tổ chức của tôi tích cực khuyến khích học hỏi về các năng lực và ứng dụng AI mới.'
+        ]
+    },
+    {
+        varPrefix: 'col_dyn',
+        title: 'NHÓM 5 — ĐỘNG LỰC CỘNG TÁC (COL_DYN)',
+        subtitle: 'Collaboration Dynamics',
+        instruction: 'Xin vui lòng đánh giá các mệnh đề sau liên quan đến cách Anh/Chị phối hợp và làm việc cùng các công cụ AI trong công việc.',
+        questions: [
+            'Tôi chủ động trao đổi qua lại với AI để cùng tinh chỉnh và cải thiện kết quả.',
+            'Làm việc với AI giúp tôi tạo ra các ý tưởng mà tôi không thể tự nghĩ ra.',
+            'Tôi đàm phán ý nghĩa với AI bằng cách diễn đạt lại, làm rõ, và phát triển thêm các phản hồi của nó.',
+            'Tôi kết hợp chuyên môn của mình với các hiểu biết do AI tạo ra để đạt kết quả tốt hơn.',
+            'AI giúp tôi học các khái niệm mới và xây dựng hiểu biết từng bước.'
+        ]
+    },
+    {
+        varPrefix: 'trust',
+        title: 'NHÓM 6 — TIN TƯỞNG VÀ CHẤP NHẬN (TRUST)',
+        subtitle: 'Trust & Acceptance',
+        instruction: 'Xin vui lòng đánh giá các mệnh đề sau liên quan đến mức độ tin tưởng và chấp nhận của Anh/Chị đối với các công cụ AI.',
+        questions: [
+            'Tôi tin tưởng các công cụ AI mà tôi sử dụng cung cấp kết quả hữu ích và phù hợp.',
+            'Tôi tự tin dựa vào các khuyến nghị của AI cho các quyết định quan trọng.',
+            'Tôi không lo lắng bị đánh lừa bởi AI nghe giống người nhưng thiếu hiểu biết thực sự.',
+            'Tôi tin rằng các công cụ AI tôi sử dụng xử lý dữ liệu của tôi một cách có trách nhiệm và an toàn.',
+            'Tôi tin rằng lợi ích của việc sử dụng AI vượt trội hơn các rủi ro tiềm ẩn.'
+        ]
+    },
+    {
+        varPrefix: 'hcr',
+        title: 'NHÓM 7 — SẴN SÀNG NHẬN THỨC CỦA CON NGƯỜI (HCR)',
+        subtitle: 'Human Cognitive Readiness',
+        instruction: 'Xin vui lòng đánh giá các mệnh đề sau liên quan đến năng lực, kỹ năng và sự sẵn sàng của Anh/Chị khi làm việc với AI.',
+        questions: [
+            'Tôi có đủ kiến thức chuyên môn để đánh giá liệu kết quả AI có chính xác cho nhiệm vụ của tôi không.',
+            'Tôi biết cách viết các câu lệnh (prompt) hiệu quả để có kết quả tốt nhất từ AI.',
+            'Tôi kiểm tra phê phán các kết quả AI về lỗi, thiên kiến, hoặc thông tin thiếu sót thay vì chấp nhận một cách mù quáng.',
+            'Tôi liên tục học các cách mới để làm việc với AI và cải thiện kỹ năng cộng tác của mình.',
+            'Các nhiệm vụ tôi sử dụng AI đủ phức tạp để hưởng lợi từ cộng tác Người–AI.'
+        ]
+    },
+    {
+        varPrefix: 'lp',
+        title: 'NHÓM 8 — HIỆU SUẤT HẬU CẦN (LP)',
+        subtitle: 'Logistics Performance',
+        instruction: 'Xin vui lòng đánh giá các mệnh đề sau liên quan đến hiệu quả hoạt động, khả năng thích nghi và kết quả phát triển bền vững đạt được thông qua việc ứng dụng AI.',
+        questions: [
+            'Hệ thống logistics đảm bảo giao hàng đúng thời gian cam kết.',
+            'Tỷ lệ đơn hàng được xử lý chính xác (đúng số lượng, đúng sản phẩm) là cao.',
+            'Hệ thống logistics có khả năng phản hồi nhanh với các thay đổi về nhu cầu khách hàng.',
+            'Hoạt động logistics được thực hiện với chi phí tối ưu so với hiệu quả đạt được.',
+            'Hệ thống cho phép theo dõi và minh bạch thông tin vận chuyển theo thời gian thực.',
+            'Dịch vụ logistics đáp ứng tốt kỳ vọng của khách hàng về độ tin cậy và tính nhất quán.',
+            'Tổng thể, hoạt động logistics góp phần cải thiện hiệu suất kinh doanh của tổ chức.'
+        ]
+    },
+    {
+        varPrefix: 'res',
+        title: 'NHÓM 9 — HIỆU SUẤT PHỤC HỒI (RES)',
+        subtitle: 'Resilience Performance',
+        instruction: 'Xin vui lòng đánh giá các mệnh đề sau liên quan đến khả năng thích nghi và phục hồi khi làm việc cùng AI.',
+        questions: [
+            'Khi AI đưa ra kết quả sai hoặc không phù hợp, tôi có thể nhanh chóng điều chỉnh cách làm việc để vẫn tiếp tục nhiệm vụ hiệu quả.',
+            'Khi công cụ AI thay đổi hành vi, giao diện, hoặc chất lượng phản hồi, tôi có thể thích nghi mà không làm gián đoạn đáng kể công việc.',
+            'Ngay cả khi AI gây hiểu nhầm hoặc bỏ sót thông tin, tôi vẫn có thể duy trì phối hợp hiệu quả bằng cách kiểm tra, làm rõ, và hiệu chỉnh đầu ra.',
+            'Tôi có thể chuyển linh hoạt giữa hỗ trợ của AI và phán đoán của bản thân khi tình huống yêu cầu.',
+            'Sau những trải nghiệm không tốt với AI, tôi vẫn có thể lấy lại cách sử dụng phù hợp thay vì từ bỏ hoặc phụ thuộc mù quáng.',
+            'Làm việc với AI giúp tôi học từ gián đoạn và cải thiện cách cộng tác của mình trong các nhiệm vụ sau.'
+        ]
+    },
+    {
+        varPrefix: 'ep',
+        title: 'NHÓM 10 — HIỆU SUẤT MÔI TRƯỜNG (EP)',
+        subtitle: 'Environmental Performance',
+        instruction: 'Xin vui lòng đánh giá các mệnh đề sau liên quan đến tác động môi trường từ việc ứng dụng AI trong doanh nghiệp.',
+        questions: [
+            'Sự cộng tác giữa con người và AI giúp tổ chức của chúng tôi xác định các rủi ro môi trường và đưa ra các quyết định xanh dựa trên dữ liệu.',
+            'Các công cụ AI trong tổ chức của chúng tôi cung cấp phản hồi theo thời gian thực giúp giảm tiêu thụ năng lượng và tác động môi trường tại nơi làm việc.',
+            'Sự cộng tác giữa con người và AI giúp tổ chức chúng tôi đáp ứng hiệu quả hơn các yêu cầu tuân thủ quy định môi trường.',
+            'Ban lãnh đạo tổ chức sử dụng các công cụ AI để thiết lập và giám sát các mục tiêu bảo vệ môi trường và tuân thủ quy định.',
+            'Tổ chức của chúng tôi chủ động sử dụng AI kết hợp với giám sát của con người để theo dõi và giảm thiểu tiêu thụ năng lượng và lượng rác thải phát sinh.',
+            'Sự cộng tác giữa con người và AI đã giúp tổ chức của chúng tôi phát triển các giải pháp xanh sáng tạo và cải thiện các thực hành bền vững về môi trường.'
+        ]
+    },
+    {
+        varPrefix: 'sp',
+        title: 'NHÓM 11 — HIỆU SUẤT BỀN VỮNG (SP)',
+        subtitle: 'Sustainability Performance',
+        instruction: 'Xin vui lòng đánh giá các mệnh đề sau liên quan đến kết quả bền vững mà doanh nghiệp đạt được.',
+        questions: [
+            'Doanh nghiệp chúng tôi đã giảm tác động tiêu cực đến môi trường thông qua việc tiết kiệm năng lượng, tài nguyên và giảm chất thải trong hoạt động.',
+            'Doanh nghiệp chúng tôi đã cải thiện hiệu quả việc tuân thủ và quản lý các yêu cầu liên quan đến môi trường.',
+            'Doanh nghiệp chúng tôi đã nâng cao phúc lợi, điều kiện làm việc và sự phát triển của người lao động.',
+            'Doanh nghiệp chúng tôi tạo ra giá trị tích cực hơn cho khách hàng, cộng đồng và các bên liên quan.',
+            'Việc theo đuổi phát triển bền vững đã giúp doanh nghiệp chúng tôi cải thiện hiệu quả chi phí và hiệu quả hoạt động tổng thể.',
+            'Các hoạt động bền vững đã góp phần nâng cao năng lực cạnh tranh và kết quả kinh doanh dài hạn của doanh nghiệp.'
+        ]
+    }
 ];
 
-/* ─────────────────────────────────────────────────────────────────────────
-   RENDER LIKERT TABLES
-   ───────────────────────────────────────────────────────────────────────── */
-(function renderLikert() {
-  var container = document.getElementById('likert-sections');
-  var html = '';
+const LIKERT_5 = ['1','2','3','4','5'];
 
-  LIKERT_SECTIONS.forEach(function(sec, si) {
-    var isFirst = si === 0;
-    html += (isFirst ? '' : '<hr class="q-divider" />');
-    html += '<div class="question" id="q-' + sec.id + '">';
-    html += '<span class="section-tag">' + sec.id + '</span>';
-    html += '<label class="q-label">' + sec.title + ' <span class="req">*</span>';
-    html += '<span class="q-hint">' + sec.hint + '</span></label>';
-    html += '<div class="likert-scroll"><table class="likert-tbl">';
-    html += '<thead><tr><th class="stmt-h">Mệnh đề</th>';
-    LIKERT_COLS.forEach(function(col, ci) {
-      html += '<th>' + col + '<br/><small style="font-weight:400;opacity:.7;">' + (ci + 1) + '</small></th>';
+// ================================================================
+// RENDER LIKERT SECTIONS
+// ================================================================
+function renderSections() {
+    const container = document.getElementById('likert-sections');
+    let qNum = 12; // continues after 12 demographic questions
+    SURVEY_SECTIONS.forEach(sec => {
+        const div = document.createElement('div');
+        div.className = 'section';
+        const questionsHTML = sec.questions.map((q, i) => {
+            qNum++;
+            const varName = sec.varPrefix + '_' + (i + 1);
+            const opts = LIKERT_5.map(v =>
+                `<label><input type="radio" name="${varName}" value="${v}" required><span>${v}</span></label>`
+            ).join('');
+            return `<div class="question-block" id="block_${varName}">
+                <div class="question-label">
+                    <span class="q-num">${qNum}</span>
+                    <span>${q}</span>
+                </div>
+                <div class="likert-wrap">
+                    <div class="likert-row">
+                        <span class="lk-end left">Rất không<br>đồng ý</span>
+                        <div class="likert-options">${opts}</div>
+                        <span class="lk-end right">Rất<br>đồng ý</span>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+        div.innerHTML = `
+            <div class="section-header">${sec.title}<small>${sec.subtitle}</small></div>
+            <div class="section-body">
+                <div class="section-instruction">${sec.instruction}</div>
+                ${questionsHTML}
+            </div>`;
+        container.appendChild(div);
     });
-    html += '</tr></thead><tbody>';
-
-    sec.rows.forEach(function(row, ri) {
-      var rowCode = sec.id + '_' + (ri + 1);
-      html += '<tr>';
-      html += '<td class="stmt">' + (ri + 1) + '. ' + row + '</td>';
-      for (var v = 1; v <= 5; v++) {
-        html += '<td class="rc"><input type="radio" name="' + rowCode + '" value="' + v + '" required /></td>';
-      }
-      html += '</tr>';
-    });
-
-    html += '</tbody></table></div>';
-    html += '<div class="err-msg" id="err-' + sec.id + '">Vui lòng đánh giá tất cả các mệnh đề trong mục này.</div>';
-    html += '</div>';
-  });
-
-  container.innerHTML = html;
-})();
-
-/* ─────────────────────────────────────────────────────────────────────────
-   TOGGLE OTHER TEXT INPUT
-   ───────────────────────────────────────────────────────────────────────── */
-function toggleOther(input, targetId) {
-  var el = document.getElementById(targetId);
-  if (!el) return;
-  if (input.type === 'radio') {
-    el.classList.toggle('visible', input.value === 'Other' && input.checked);
-  } else {
-    el.classList.toggle('visible', input.checked);
-  }
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   PROGRESS BAR
-   ───────────────────────────────────────────────────────────────────────── */
+// ================================================================
+// PROGRESS
+// ================================================================
 function updateProgress() {
-  var form = document.getElementById('survey-form');
-  var allInputs = form.querySelectorAll('input[type="radio"], input[type="checkbox"]');
-  var names = {};
-  allInputs.forEach(function(inp) { names[inp.name] = true; });
-  var total = Object.keys(names).length;
-
-  var answered = 0;
-  Object.keys(names).forEach(function(name) {
-    var els = form.querySelectorAll('[name="' + name + '"]:checked');
-    if (els.length > 0) answered++;
-  });
-
-  var pct = total > 0 ? Math.round((answered / total) * 100) : 0;
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('progress-pct').textContent = pct + '%';
-  document.getElementById('progress-label').textContent =
-    answered + '/' + total + ' câu';
-}
-
-document.getElementById('survey-form').addEventListener('change', updateProgress);
-
-/* ─────────────────────────────────────────────────────────────────────────
-   VALIDATION HELPERS
-   ───────────────────────────────────────────────────────────────────────── */
-function getRadioVal(name) {
-  var el = document.querySelector('[name="' + name + '"]:checked');
-  return el ? el.value : null;
-}
-
-function getCheckboxVals(name) {
-  var els = document.querySelectorAll('[name="' + name + '"]:checked');
-  return Array.from(els).map(function(e) { return e.value; });
-}
-
-function showErr(id, show) {
-  var el = document.getElementById('err-' + id);
-  if (el) el.classList.toggle('show', show);
-}
-
-function scrollToFirst(id) {
-  var el = document.getElementById('q-' + id);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-/* ─────────────────────────────────────────────────────────────────────────
-   FORM SUBMIT
-   ───────────────────────────────────────────────────────────────────────── */
-document.getElementById('survey-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  var valid = true;
-  var firstErr = null;
-
-  /* ── Required radio fields ── */
-  var radios = ['consent','gender','age','position','size','revenue',
-                'years_op','tenure','ai_level','ai_dur'];
-  radios.forEach(function(name) {
-    var ok = !!getRadioVal(name);
-    showErr(name, !ok);
-    if (!ok && !firstErr) firstErr = name;
-    if (!ok) valid = false;
-  });
-
-  /* ── Required checkbox groups ── */
-  var checks = ['industry','ai_areas','ai_tools'];
-  checks.forEach(function(name) {
-    var ok = getCheckboxVals(name).length > 0;
-    showErr(name, !ok);
-    if (!ok && !firstErr) firstErr = name;
-    if (!ok) valid = false;
-  });
-
-  /* ── Likert grids ── */
-  LIKERT_SECTIONS.forEach(function(sec) {
-    var allAnswered = sec.rows.every(function(_, ri) {
-      return !!getRadioVal(sec.id + '_' + (ri + 1));
+    const radios = document.querySelectorAll('#surveyForm input[type="radio"]');
+    const names = new Set([...radios].map(r => r.name));
+    let answered = 0;
+    names.forEach(n => {
+        if (document.querySelector(`input[name="${n}"]:checked`)) answered++;
     });
-    showErr(sec.id, !allAnswered);
-    if (!allAnswered && !firstErr) firstErr = sec.id;
-    if (!allAnswered) valid = false;
-  });
+    const pct = names.size > 0 ? Math.round((answered / names.size) * 100) : 0;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-text').textContent = pct + '%';
+}
 
-  if (!valid) {
-    scrollToFirst(firstErr);
-    return;
-  }
+// ================================================================
+// VALIDATION
+// ================================================================
+function validateForm() {
+    const radios = document.querySelectorAll('#surveyForm input[type="radio"]');
+    const names = new Set([...radios].map(r => r.name));
+    let firstMissing = null;
+    names.forEach(n => {
+        const block = document.getElementById('block_' + n);
+        if (!document.querySelector(`input[name="${n}"]:checked`)) {
+            if (block) block.classList.add('req-error');
+            if (!firstMissing) firstMissing = block;
+        } else {
+            if (block) block.classList.remove('req-error');
+        }
+    });
+    return firstMissing;
+}
 
-  /* ── Submit ── */
-  if (GOOGLE_FORM_URL && GOOGLE_FORM_URL.length > 0) {
-    // Redirect to Google Form
-    window.location.href = GOOGLE_FORM_URL;
-  } else {
-    // Show built-in thank-you
-    document.getElementById('survey-form').style.display = 'none';
-    document.getElementById('thank-you').style.display = 'block';
+// ================================================================
+// DATA COLLECTION
+// ================================================================
+function collectData() {
+    const data = {
+        timestamp: new Date().toISOString(),
+        survey_date: document.getElementById('survey-date').value,
+        respondent_email: document.getElementById('respondent-email').value.trim()
+    };
+
+    // Radio buttons
+    document.querySelectorAll('#surveyForm input[type="radio"]:checked').forEach(el => {
+        if (el.name) data[el.name] = el.value;
+    });
+
+    // Checkboxes — collect as semicolon-separated string
+    const cbGroups = {};
+    document.querySelectorAll('#surveyForm input[type="checkbox"]:checked').forEach(cb => {
+        if (!cbGroups[cb.name]) cbGroups[cb.name] = [];
+        cbGroups[cb.name].push(cb.value);
+    });
+    // Map grouped names to clean field names
+    if (cbGroups['q_info_10_items']) data['q_info_10'] = cbGroups['q_info_10_items'].join('; ');
+    if (cbGroups['q_info_12_items']) data['q_info_12'] = cbGroups['q_info_12_items'].join('; ');
+
+    // "Other" text inputs (only include if visible/filled)
+    ['q_info_3_other','q_info_4_other','q_info_6_other','q_info_10_other','q_info_12_other'].forEach(name => {
+        const el = document.getElementById(name);
+        if (el) data[name] = el.value.trim();
+    });
+
+    return data;
+}
+
+// ================================================================
+// STATE
+// ================================================================
+const LS_KEY_URL  = 'survey_ai_collab_google_url';
+const LS_KEY_RESP = 'survey_ai_collab_responses';
+
+const metaUrl = document.querySelector('meta[name="google-script-url"]');
+let googleScriptUrl = (metaUrl && metaUrl.getAttribute('content')) ||
+                       localStorage.getItem(LS_KEY_URL) || '';
+
+let responses = JSON.parse(localStorage.getItem(LS_KEY_RESP) || '[]');
+
+// ================================================================
+// SUBMIT
+// ================================================================
+document.getElementById('surveyForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    // Block if user declined consent
+    const consentVal = document.querySelector('input[name="consent"]:checked');
+    if (!consentVal || consentVal.value !== 'Có') {
+        showToast('Vui lòng đồng ý tham gia khảo sát trước khi gửi.', true);
+        document.getElementById('block_consent').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    const firstMissing = validateForm();
+    if (firstMissing) {
+        firstMissing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showToast('⚠ Vui lòng trả lời tất cả các câu hỏi bắt buộc.', true);
+        return;
+    }
+
+    // Validate at least one checkbox is selected for Q10 and Q12
+    const q10checked = document.querySelectorAll('input[name="q_info_10_items"]:checked');
+    const q12checked = document.querySelectorAll('input[name="q_info_12_items"]:checked');
+    if (q10checked.length === 0) {
+        showToast('⚠ Vui lòng chọn ít nhất một lĩnh vực AI (câu 10).', true);
+        document.getElementById('block_q_info_10').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+    if (q12checked.length === 0) {
+        showToast('⚠ Vui lòng chọn ít nhất một công cụ AI (câu 12).', true);
+        document.getElementById('block_q_info_12').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Đang gửi...';
+
+    const data = collectData();
+
+    // Save locally
+    responses.push(data);
+    localStorage.setItem(LS_KEY_RESP, JSON.stringify(responses));
+    updateResponseCount();
+
+    // Send to Google Sheets if configured
+    let sent = false;
+    if (googleScriptUrl) {
+        try {
+            const formBody = new URLSearchParams();
+            formBody.append('payload', JSON.stringify(data));
+            await fetch(googleScriptUrl, { method: 'POST', body: formBody });
+            sent = true;
+        } catch (err) {
+            console.error('Google Sheets error:', err);
+        }
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '&#10003;&ensp;GỬI KHẢO SÁT';
+
+    this.style.display = 'none';
+    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('thankYou').style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+
+    if (googleScriptUrl) {
+        showToast(sent ? '✅ Phiếu đã gửi thành công!' : '⚠ Gửi thất bại — đã lưu cục bộ.');
+    } else {
+        showToast('📋 Phiếu đã lưu cục bộ (chưa cấu hình Google Script URL).');
+    }
 });
+
+// ================================================================
+// RESET
+// ================================================================
+function resetSurvey() {
+    document.getElementById('surveyForm').reset();
+    document.getElementById('surveyForm').style.display = 'block';
+    document.getElementById('progressWrap').style.display = 'flex';
+    document.getElementById('thankYou').style.display = 'none';
+    document.getElementById('consentGate').style.display = 'none';
+    // Hide all "other" fields
+    ['q3_other_wrap','q4_other_wrap','q6_other_wrap','q10_other_wrap','q12_other_wrap'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+    document.getElementById('survey-date').value = new Date().toISOString().split('T')[0];
+    updateProgress();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ================================================================
+// ADMIN
+// ================================================================
+const ADMIN_HASH = (document.querySelector('meta[name="admin-password-hash"]') || {}).content || '';
+
+function toggleAdmin() {
+    const panel = document.getElementById('adminPanel');
+    if (panel.classList.contains('active')) { closeAdmin(); return; }
+    panel.classList.add('active');
+    document.getElementById('adminOverlay').classList.add('active');
+    document.getElementById('googleScriptUrl').value = googleScriptUrl;
+    updateUrlStatus();
+    updateResponseCount();
+}
+function closeAdmin() {
+    document.getElementById('adminPanel').classList.remove('active');
+    document.getElementById('adminOverlay').classList.remove('active');
+}
+async function verifyAdmin() {
+    const pwd = document.getElementById('adminPassword').value;
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
+    const hash = [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+    if (hash === ADMIN_HASH) {
+        document.getElementById('adminLoginSection').style.display = 'none';
+        document.getElementById('adminContent').style.display = 'block';
+    } else {
+        showToast('❌ Sai mật khẩu.', true);
+    }
+}
+function updateUrlStatus() {
+    const badge = document.getElementById('urlStatus');
+    if (googleScriptUrl) {
+        badge.className = 'status-badge online';
+        badge.innerHTML = '<span class="dot"></span>&nbsp;Đã cấu hình';
+    } else {
+        badge.className = 'status-badge offline';
+        badge.innerHTML = '<span class="dot"></span>&nbsp;Chưa cấu hình';
+    }
+}
+function saveGoogleUrl() {
+    const url = document.getElementById('googleScriptUrl').value.trim();
+    if (url && !url.startsWith('https://script.google.com/')) {
+        showToast('⚠ URL không hợp lệ.', true); return;
+    }
+    googleScriptUrl = url;
+    localStorage.setItem(LS_KEY_URL, url);
+    updateUrlStatus();
+    showToast('✅ Đã lưu Google Script URL!');
+}
+function clearGoogleUrl() {
+    googleScriptUrl = '';
+    localStorage.removeItem(LS_KEY_URL);
+    document.getElementById('googleScriptUrl').value = '';
+    updateUrlStatus();
+    showToast('🗑 Đã xóa URL.');
+}
+function updateResponseCount() {
+    const el = document.getElementById('responseCount');
+    if (el) el.textContent = responses.length;
+}
+
+// ================================================================
+// EXPORT
+// ================================================================
+function exportCSV() {
+    if (!responses.length) { showToast('Chưa có dữ liệu.', true); return; }
+    const keys = [...new Set(responses.flatMap(r => Object.keys(r)))];
+    let csv = '\uFEFF' + keys.join(',') + '\n';
+    responses.forEach(r => {
+        csv += keys.map(k => '"' + (r[k]||'').toString().replace(/"/g,'""') + '"').join(',') + '\n';
+    });
+    downloadFile(csv, 'survey_ai_collab_' + new Date().toISOString().slice(0,10) + '.csv', 'text/csv;charset=utf-8');
+}
+function exportJSON() {
+    if (!responses.length) { showToast('Chưa có dữ liệu.', true); return; }
+    downloadFile(JSON.stringify(responses, null, 2), 'survey_ai_collab_' + new Date().toISOString().slice(0,10) + '.json', 'application/json');
+}
+function downloadFile(content, filename, mimeType) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
+    a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+function clearData() {
+    if (!confirm('Xóa TẤT CẢ dữ liệu phản hồi? Không thể hoàn tác.')) return;
+    responses = [];
+    localStorage.removeItem(LS_KEY_RESP);
+    updateResponseCount();
+    showToast('Đã xóa tất cả dữ liệu.', true);
+}
+
+// ================================================================
+// GOOGLE APPS SCRIPT CODE (for admin panel)
+// ================================================================
+function showGASCode() {
+    const HEADERS = [
+        'timestamp','respondent_email','survey_date','consent',
+        'q_info_1','q_info_2','q_info_3','q_info_3_other',
+        'q_info_4','q_info_4_other','q_info_5','q_info_6','q_info_6_other',
+        'q_info_7','q_info_8','q_info_9','q_info_10','q_info_10_other',
+        'q_info_11','q_info_12','q_info_12_other',
+        'ai_cap_1','ai_cap_2','ai_cap_3','ai_cap_4','ai_cap_5',
+        'xai_1','xai_2','xai_3','xai_4','xai_5',
+        'gov_1','gov_2','gov_3','gov_4','gov_5',
+        'inn_1','inn_2','inn_3','inn_4','inn_5',
+        'col_dyn_1','col_dyn_2','col_dyn_3','col_dyn_4','col_dyn_5',
+        'trust_1','trust_2','trust_3','trust_4','trust_5',
+        'hcr_1','hcr_2','hcr_3','hcr_4','hcr_5',
+        'lp_1','lp_2','lp_3','lp_4','lp_5','lp_6','lp_7',
+        'res_1','res_2','res_3','res_4','res_5','res_6',
+        'ep_1','ep_2','ep_3','ep_4','ep_5','ep_6',
+        'sp_1','sp_2','sp_3','sp_4','sp_5','sp_6'
+    ];
+    const code = `// ============================================================
+// Google Apps Script — Survey: Human–AI Collaboration
+// 86 columns, 5-point Likert + demographics
+// Steps:
+//   1. Create a new Google Sheet
+//   2. Extensions → Apps Script → paste this code
+//   3. Deploy → New deployment → Web App
+//      Execute as: Me | Who has access: Anyone
+//   4. Copy the Web App URL and paste into the Admin Panel
+// ============================================================
+
+var SPREADSHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
+var SHEET_NAME = 'Survey Data';
+var HEADERS = ${JSON.stringify(HEADERS, null, 2)};
+
+function doPost(e) {
+    try {
+        var sheet = getOrCreateSheet();
+        var data = JSON.parse(e.parameter.payload);
+        var row = HEADERS.map(function(h) { return data[h] !== undefined ? data[h] : ''; });
+        sheet.appendRow(row);
+        return ContentService
+            .createTextOutput(JSON.stringify({ status: 'ok', rows: sheet.getLastRow() }))
+            .setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+        return ContentService
+            .createTextOutput(JSON.stringify({ status: 'error', message: err.toString() }))
+            .setMimeType(ContentService.MimeType.JSON);
+    }
+}
+
+function doGet(e) {
+    return ContentService
+        .createTextOutput(JSON.stringify({ status: 'ready', survey: 'Human-AI Collaboration' }))
+        .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getOrCreateSheet() {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var sheet = ss.getSheetByName(SHEET_NAME);
+    if (!sheet) {
+        sheet = ss.insertSheet(SHEET_NAME);
+        sheet.appendRow(HEADERS);
+        var hdrRange = sheet.getRange(1, 1, 1, HEADERS.length);
+        hdrRange.setBackground('#000054').setFontColor('#FFFFFF').setFontWeight('bold').setHorizontalAlignment('center');
+        sheet.setFrozenRows(1);
+        sheet.setColumnWidths(1, HEADERS.length, 120);
+    }
+    return sheet;
+}
+
+// Run this once manually to set up headers:
+function setupHeaders() {
+    var sheet = getOrCreateSheet();
+    SpreadsheetApp.getUi().alert('Done! ' + HEADERS.length + ' columns created in sheet: ' + SHEET_NAME);
+}`;
+
+    const win = window.open('', '_blank', 'width=760,height=620');
+    win.document.write(`<!DOCTYPE html><html><head><title>Google Apps Script — AI Collab Survey</title>
+    <style>body{font-family:monospace;background:#1e1e2e;color:#cdd6f4;padding:20px;margin:0;}
+    pre{white-space:pre-wrap;font-size:12px;line-height:1.6;margin-top:14px;}
+    h2{color:#89b4fa;font-family:sans-serif;font-size:15px;margin-bottom:10px;}
+    button{background:#89b4fa;color:#1e1e2e;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-weight:bold;font-size:13px;}
+    button:hover{opacity:0.8;}</style></head><body>
+    <h2>📄 Google Apps Script — Human–AI Collaboration Survey (86 cột)</h2>
+    <button onclick="navigator.clipboard.writeText(document.getElementById('code').textContent);this.textContent='✅ Đã sao chép!'">📋 Sao chép mã</button>
+    <pre id="code">${code.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
+    </body></html>`);
+}
+
+// ================================================================
+// TOAST
+// ================================================================
+function showToast(msg, isError) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => { t.className = 'toast'; }, 4000);
+}
+
+// ================================================================
+// INIT
+// ================================================================
+document.addEventListener('DOMContentLoaded', function() {
+    renderSections();
+
+    // Set today's date
+    document.getElementById('survey-date').value = new Date().toISOString().split('T')[0];
+
+    // Progress tracking
+    document.getElementById('surveyForm').addEventListener('change', updateProgress);
+    updateProgress();
+
+    // Consent gate: if user says "Không", show warning
+    document.querySelectorAll('input[name="consent"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            document.getElementById('consentGate').style.display =
+                this.value === 'Không' ? 'block' : 'none';
+        });
+    });
+
+    // Q3 "Other" toggle
+    document.querySelectorAll('input[name="q_info_3"]').forEach(function(r) {
+        r.addEventListener('change', function() {
+            document.getElementById('q3_other_wrap').style.display =
+                this.value === 'Khác' ? 'block' : 'none';
+        });
+    });
+    // Q4 "Other" toggle
+    document.querySelectorAll('input[name="q_info_4"]').forEach(function(r) {
+        r.addEventListener('change', function() {
+            document.getElementById('q4_other_wrap').style.display =
+                this.value === 'Khác' ? 'block' : 'none';
+        });
+    });
+    // Q6 "Other" toggle
+    document.querySelectorAll('input[name="q_info_6"]').forEach(function(r) {
+        r.addEventListener('change', function() {
+            document.getElementById('q6_other_wrap').style.display =
+                this.value === 'Khác' ? 'block' : 'none';
+        });
+    });
+    // Q10 "Other" checkbox toggle
+    document.getElementById('q10_other_cb').addEventListener('change', function() {
+        document.getElementById('q10_other_wrap').style.display = this.checked ? 'block' : 'none';
+    });
+    // Q12 "Other" checkbox toggle
+    document.getElementById('q12_other_cb').addEventListener('change', function() {
+        document.getElementById('q12_other_wrap').style.display = this.checked ? 'block' : 'none';
+    });
+});
+</script>
+
+<!-- ========== EMAIL + DATE (visible below header, above form) ========== -->
+<script>
+// Inject email + date bar into DOM before the form
+(function() {
+    var bar = document.createElement('div');
+    bar.className = 'date-field';
+    bar.innerHTML = '<label>📧 Email (tùy chọn):</label>' +
+        '<input type="email" name="respondent_email" id="respondent-email" placeholder="example@email.com" style="flex:1;min-width:200px;">' +
+        '<label style="margin-left:12px;">📅 Ngày điền:</label>' +
+        '<input type="date" name="survey_date" id="survey-date" readonly style="width:140px;">';
+    var form = document.getElementById('surveyForm');
+    form.parentNode.insertBefore(bar, form);
+})();
 </script>
 
 </body>
